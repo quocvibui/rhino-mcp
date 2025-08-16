@@ -1,27 +1,69 @@
 #!/usr/bin/env python3
-"""
-Rhino3D MCP Server for macOS
-Uses Rhino's command line interface and Python scripting
-"""
+# rhino_mcp_server2.py  -- MCP tool that talks to the Rhino listener
+import asyncio, os, sys, json, time, socket, tempfile, subprocess
+from pathlib import Path
 
-import asyncio
-import subprocess
-import tempfile
-import os
 from mcp.server.models import InitializationOptions
 from mcp.server import NotificationOptions, Server
 from mcp.server.stdio import stdio_server
 import mcp.types as types
 
+APP_DIR = Path("~/Library/Application Support/rhino_mcp").expanduser()
+PORT_FILE = APP_DIR / "port.txt"
+LISTENER_PATH = Path("/Users/quocbui/desktop/rhino_mcp/rhino_listener.py")
+RHINO_APP_NAME = "Rhino 7"
+
 server = Server("rhino3d-server")
+
+def _read_port_from_file():
+    try:
+        with open(PORT_FILE, "r") as f:
+            return int(f.read().strip())
+    except:
+        return None
+
+def _is_port_open(port: int, host="127.0.0.1") -> bool:
+    try:
+        s = socket.create_connection((host, port), timeout=0.2)
+        s.close()
+        return True
+    except:
+        return False
+
+def _launch_rhino_and_start_listener(new_instance: bool) -> None:
+    # Use macOS 'open' so we don't block; pass a macro that runs the listener script.
+    macro = f'_-RunPythonScript "{str(LISTENER_PATH)}" _Enter'
+    cmd = ["open"]
+    if new_instance:
+        cmd.append("-n")
+    cmd += ["-a", RHINO_APP_NAME, "--args", "-runscript", macro]
+    subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+def _send_request(port: int, payload: dict, timeout=5.0) -> dict:
+    s = socket.create_connection(("127.0.0.1", port), timeout=timeout)
+    try:
+        s.sendall((json.dumps(payload) + "\n").encode("utf-8"))
+        s.settimeout(timeout)
+        buf = b""
+        while True:
+            chunk = s.recv(4096)
+            if not chunk:
+                break
+            buf += chunk
+            if b"\n" in buf:
+                line, _rest = buf.split(b"\n", 1)
+                return json.loads(line.decode("utf-8"))
+        return {"ok": False, "error": "no response"}
+    finally:
+        try: s.close()
+        except: pass
 
 @server.list_tools()
 async def handle_list_tools() -> list[types.Tool]:
-    """List available Rhino tools"""
     return [
         types.Tool(
             name="create_box",
-            description="Create a simple box in Rhino",
+            description="Create a simple box in Rhino (socket-based live edit)",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -31,108 +73,70 @@ async def handle_list_tools() -> list[types.Tool]:
                     "x": {"type": "number", "default": 0},
                     "y": {"type": "number", "default": 0},
                     "z": {"type": "number", "default": 0},
-                    "docPath": {"type": "string", "description": "Full path to a .3dm to open/edit (optional)"},
-                    "newInstance": {"type": "boolean", "default": False, "description": "Launch a new Rhino instance"}
-                }
+                    "docPath": {"type": "string", "description": "Target .3dm for this session (optional)"},
+                    "newInstance": {"type": "boolean", "default": False, "description": "Force a brand new Rhino instance"},
+                    "instancePort": {"type": "number", "description": "Reuse a specific Rhino listener port (advanced)"}
+                },
+                "required": []
             }
         )
     ]
 
 @server.call_tool()
 async def handle_call_tool(name: str, arguments: dict) -> list[types.TextContent]:
-    """Handle tool calls"""
-    if name == "create_box":
-        return await create_box(arguments)
-    else:
+    if name != "create_box":
         raise ValueError(f"Unknown tool: {name}")
+    return await create_box(arguments)
 
 async def create_box(args: dict) -> list[types.TextContent]:
-    """Create a box in Rhino using a Rhino-Python script"""
     try:
-        # Params
-        width = args.get("width", 10)
-        height = args.get("height", 10)
-        depth = args.get("depth", 10)
-        x = args.get("x", 0)
-        y = args.get("y", 0)
-        z = args.get("z", 0)
-        doc_path = args.get("docPath")
+        width  = float(args.get("width", 10))
+        height = float(args.get("height", 10))
+        depth  = float(args.get("depth", 10))
+        x = float(args.get("x", 0))
+        y = float(args.get("y", 0))
+        z = float(args.get("z", 0))
+        doc_path = args.get("docPath") or None
         new_instance = bool(args.get("newInstance", False))
+        pinned_port = args.get("instancePort")
 
-        # Rhino-Python script (EnableRedraw + 8-corner AddBox)
-        script_content = f'''
-import rhinoscriptsyntax as rs
-rs.EnableRedraw(True)
+        # 1) Decide which port to use
+        port = int(pinned_port) if pinned_port else _read_port_from_file()
 
-# 8-corner box: bottom loop CCW, then matching top loop
-p0 = ({x},           {y},           {z})
-p1 = ({x + width},   {y},           {z})
-p2 = ({x + width},   {y + depth},   {z})
-p3 = ({x},           {y + depth},   {z})
-p4 = ({x},           {y},           {z + height})
-p5 = ({x + width},   {y},           {z + height})
-p6 = ({x + width},   {y + depth},   {z + height})
-p7 = ({x},           {y + depth},   {z + height})
+        # 2) If no listener or port closed, (re)launch Rhino and start the listener
+        if not port or not _is_port_open(port):
+            _launch_rhino_and_start_listener(new_instance)
+            # Wait for port file and socket to become ready
+            t0 = time.time()
+            port = None
+            while time.time() - t0 < 20.0:
+                port = _read_port_from_file()
+                if port and _is_port_open(port):
+                    break
+                time.sleep(0.5)
+            if not port or not _is_port_open(port):
+                return [types.TextContent(type="text", text=f"Error: Could not reach Rhino listener.")]
 
-box_id = rs.AddBox([p0, p1, p2, p3, p4, p5, p6, p7])
+        # 3) Send the create_box request
+        payload = {
+            "action": "create_box",
+            "width": width, "height": height, "depth": depth,
+            "x": x, "y": y, "z": z,
+            "docPath": doc_path
+        }
+        resp = _send_request(port, payload, timeout=10.0)
 
-if box_id:
-    print("Created box: {width}x{height}x{depth} at ({x},{y},{z})")
-    print("Box ID: " + str(box_id))
-else:
-    print("Error: Failed to create box")
-'''
-        # Temp file (use realpath to avoid /tmp symlink issues)
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
-            f.write(script_content)
-            f.flush()
-            script_path = f.name
-        script_path_real = os.path.realpath(script_path)
-
-        try:
-            # Build macro:
-            #  - '!' cancels any active command
-            #  - Use parenthesized RunPythonScript (most reliable on macOS)
-            #  - ONLY open/create the doc when starting a NEW instance.
-            #    For live edits, skip Open so we don't hit blocking prompts.
-            macro_parts = ['!']
-
-            if doc_path and new_instance:
-                if os.path.exists(doc_path):
-                    macro_parts.append(f'_-Open "{doc_path}" _Enter')
-                else:
-                    macro_parts.append('_-New _None _Enter')
-                    macro_parts.append(f'_-SaveAs "{doc_path}" _Enter')
-
-            macro_parts.append(f'_-RunPythonScript ( "{script_path_real}" ) _Enter')
-            macro = " ".join(macro_parts)
-
-            # Launch Rhino via macOS 'open'; add -n to force args delivery when needed
-            cmd = ["open"]
-            if new_instance:
-                cmd.append("-n")
-            cmd += ["-a", "Rhino 7", "--args", "-runscript", macro]
-
-            subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-            if doc_path and new_instance:
-                prefix = f'Opened "{doc_path}" and '
-            elif doc_path:
-                prefix = f'(Using current active doc; expected "{doc_path}") '
-            else:
-                prefix = ''
-            detail = f'{prefix}added {width}x{height}x{depth} box at ({x},{y},{z}).'
-            return [types.TextContent(type="text", text="Sent script to Rhino. " + detail)]
-
-        finally:
-            # Don't delete immediately; Rhino may still be reading it.
-            pass
+        if resp.get("ok"):
+            target = f'Opened "{doc_path}" and ' if doc_path else ""
+            msg = f"Live edit OK. {target}added {width}x{height}x{depth} box at ({x},{y},{z})."
+            return [types.TextContent(type="text", text=msg)]
+        else:
+            return [types.TextContent(type="text", text=f"Listener error: {resp.get('error')}")]
 
     except Exception as e:
-        return [types.TextContent(type="text", text=f"Error creating box: {str(e)}")]
+        return [types.TextContent(type="text", text=f"Server error: {e}")]
 
 async def main():
-    # Run the server using stdin/stdout streams
     async with stdio_server() as (read_stream, write_stream):
         await server.run(
             read_stream,
