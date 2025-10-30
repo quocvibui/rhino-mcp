@@ -1,217 +1,343 @@
-# Rhino MCP Server
+# Rhino MCP
 
-Model Context Protocol server for Rhino 7 integration with Claude and other LLM applications.
+AI-powered 3D modeling in Rhino 7 through Model Context Protocol.
 
 ## Overview
 
-Rhino MCP enables AI assistants to create and manipulate 3D geometry in Rhino 7 through a comprehensive set of tools organized by functionality. The server communicates with Rhino via socket connection for real-time geometry creation and manipulation.
+Production-ready Rhino 7 MCP server with 49 comprehensive tools for geometry creation, transformation, boolean operations, curve/surface manipulation, layer management, and analysis.
 
-## Features
+**Key Features:**
+- Safe JSON protocol over TCP sockets
+- IronPython 2.7 compatible for Rhino 7
+- FastMCP for clean tool registration
+- Comprehensive scene understanding for Claude
+- Direct scripting API (use without Claude)
 
-### Geometry Tools
-- Points, lines, circles, arcs, ellipses
-- Polylines and regular polygons
-- Parametric curve creation
+## Documentation
 
-### 3D Solids
-- Box, sphere, cylinder, cone, torus
-- Parametric solid primitives
+- **[MCP.md](MCP.md)** - Using with Claude Desktop (AI-assisted 3D modeling)
+- **[SCRIPT.md](SCRIPT.md)** - Direct scripting without Claude (algorithmic generation)
+- **[STYLE.md](STYLE.md)** - Code style guide
+- **script/** - Example pattern generation scripts
 
-### Curve Operations
-- Join and explode curves
-- Offset, fillet, extend
-- Curve manipulation tools
+## Quick Start
 
-### Surface Operations
-- Extrude straight and along path
-- Revolve around axis
-- Loft through curves
-- Sweep rail operations
-- Planar surfaces
+### 1. Install Dependencies
 
-### Layer Management
-- Create and delete layers
-- Set current layer
-- Layer colors and visibility
-- List all layers
-
-### Object Operations
-- Select all or by layer
-- Delete, move, copy objects
-- Rotate, scale, mirror
-- Object information queries
-
-### View Control
-- Zoom extents and selected
-- Standard views (top, front, perspective, etc)
-- Camera position and target
-- Display modes (wireframe, shaded, rendered)
-
-### Document Tools
-- Clear document
-- Document information
-- Set units (mm, cm, m, inches, feet)
-- Save document
-- Count objects by type
-
-## Requirements
-
-- Python 3.8 or higher
-- Rhino 7 for macOS
-- MCP Python SDK
-
-## Installation
-
-1. Clone or download this repository
-
-2. Install Python dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Configure MCP client to use this server
+### 2. Start Rhino Listener
 
-## Setup
-
-### 1. Start Rhino Listener
-
-Open Rhino 7 and run the listener script:
+Open Rhino 7 and run:
 
 ```
-_-RunPythonScript "/full/path/to/rhino_listener.py" _Enter
+_-RunPythonScript "/path/to/rhino_mcp/rhino_listener.py" _Enter
 ```
 
-The listener will start in the background and display:
+Replace `/path/to/rhino_mcp/` with your actual installation path.
+
+You should see:
 ```
 ============================================================
-Rhino MCP Listener
+RhinoMCP Listener v2.0 - JSON Protocol
 ============================================================
-Rhino MCP Listener active on localhost:54321
-Ready to receive commands from MCP server
-============================================================
+RhinoMCP Listener active on localhost:54321
+Using JSON protocol
+Ready to receive commands
 ```
 
-Keep Rhino running with the listener active.
+### 3. Configure Claude Desktop
 
-### 2. Configure MCP Client
-
-Add to your MCP client configuration (e.g., Claude Desktop):
+Edit: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
 ```json
 {
 	"mcpServers": {
 		"rhino": {
-			"command": "python",
-			"args": ["/full/path/to/rhino_mcp/src/server.py"]
+			"command": "/usr/local/bin/python3",
+			"args": ["/path/to/rhino_mcp/src/server.py"]
 		}
 	}
 }
 ```
 
-### 3. Start Using
+Replace `/path/to/rhino_mcp/` with your actual installation path.
 
-With Rhino running and listener active, your MCP client can now execute Rhino commands.
+### 4. Restart Claude Desktop
 
-## Usage Examples
+Close and reopen Claude Desktop to load the MCP server.
 
-### Create Basic Geometry
+### 5. Test
 
+Try in Claude:
 ```
+Get scene info from Rhino
 Create a box at origin with size 10x10x10
-Add a sphere at (20, 0, 0) with radius 5
-Draw a circle at (0, 20, 0) with radius 8
-```
-
-### Layer Management
-
-```
-Create a new layer called "Geometry" with red color
-Set current layer to "Geometry"
-List all layers in the document
-```
-
-### Object Operations
-
-```
-Select all objects
-Move selected objects by vector (10, 0, 0)
-Copy objects to (0, 20, 0)
-Rotate objects 45 degrees around origin
-```
-
-### Surface Modeling
-
-```
-Create a circle and extrude it up by 20 units
-Revolve a curve around the Z axis
-Loft surfaces through multiple curves
+Create a sphere at (20, 0, 0) with radius 5
 ```
 
 ## Architecture
 
+### JSON Protocol
+
+Commands are JSON:
+```json
+{
+	"type": "create_box",
+	"params": {"width": 10, "depth": 10, "height": 10, "x": 0, "y": 0, "z": 0}
+}
+```
+
+Responses are JSON:
+```json
+{
+	"status": "success",
+	"result": {"id": "uuid", "type": "box"}
+}
+```
+
+### Components
+
+**rhino_listener.py** - Runs in Rhino (IronPython 2.7)
+- Socket server on port 54321
+- Receives JSON commands
+- Executes rhinoscriptsyntax functions
+- Returns JSON responses
+
+**src/server.py** - MCP server (Python 3.10+)
+- FastMCP server with 49 tools
+- Sends JSON to Rhino
+- Handles responses
+
+## Tools (49 Total)
+
+### Scene Understanding (2)
+- **get_scene_info** - Object counts, layers, units, locations
+- **get_selected_objects** - Query selection details
+
+### Basic Geometry (7)
+- **create_point**, **create_line**, **create_circle**
+- **create_arc**, **create_ellipse**
+- **create_polyline**, **create_curve**
+
+### 3D Solids (5)
+- **create_box**, **create_sphere**, **create_cylinder**
+- **create_cone**, **create_torus**
+
+### Transformations (6)
+- **move_objects**, **rotate_objects**, **scale_objects**
+- **mirror_objects**, **copy_objects**, **array_linear**
+
+### Boolean Operations (3)
+- **boolean_union** - Combine solids
+- **boolean_difference** - Subtract solids
+- **boolean_intersection** - Keep overlapping volume
+
+### Curve Operations (5)
+- **join_curves**, **explode_curves**, **offset_curve**
+- **fillet_curves**, **extend_curve**
+
+### Surface Operations (3)
+- **extrude_curve_straight** - Extrude up/down
+- **revolve_curve** - Revolve around axis
+- **loft_curves** - Smooth surface through curves
+
+### Layer Management (6)
+- **create_layer**, **delete_layer**, **set_current_layer**
+- **set_layer_color**, **set_layer_visibility**, **list_layers**
+
+### Analysis (4)
+- **measure_distance**, **measure_curve_length**
+- **measure_area**, **measure_volume**
+
+### Object Properties (3)
+- **set_object_name**, **set_object_color**, **set_object_layer**
+
+### Selection (5)
+- **select_all**, **select_by_type**, **select_by_layer**
+- **unselect_all**, **delete_selected**
+
+## Usage Examples
+
+### Create Geometry
+```
+Create a box 10x10x10 at origin
+Create a sphere at (20,0,0) with radius 5
+Create a circle at origin with radius 8
+Create an arc at (0,10,0) with radius 5 from 0 to 180 degrees
+```
+
+### Transformations
+```
+Select all objects
+Move objects by (10, 0, 0)
+Rotate objects 45 degrees around origin
+Scale objects by factor 2 from origin
+```
+
+### Boolean Operations
+```
+Create a box and sphere that overlap
+Select all
+Boolean union to combine them into one solid
+```
+
+### Layer Organization
+```
+Create layer "Walls" with red color (255,0,0)
+Set current layer to "Walls"
+Create geometry (it goes on Walls layer)
+```
+
+### Surface Modeling
+```
+Create a circle at origin
+Select the circle
+Extrude it straight up by height 20
+```
+
+## Testing
+
+### Comprehensive Test Suite
+
+The test suite verifies all 49 commands plus error handling (51 tests total).
+
+Run tests:
+```bash
+python3 test_rhino_listener.py
+```
+
+Features:
+- Tests all 49 commands organized by category
+- 0.3 second delay between tests to prevent Rhino crashes
+- Pass/fail tracking with percentages
+- Detailed error reporting for failed tests
+- No Claude Desktop required
+
+Test categories:
+1. Scene Understanding (2 tests)
+2. Basic Geometry (7 tests)
+3. 3D Solids (5 tests)
+4. Transformations (6 tests)
+5. Boolean Operations (3 tests)
+6. Curve Operations (5 tests)
+7. Surface Operations (3 tests)
+8. Layer Management (7 tests)
+9. Analysis Tools (4 tests)
+10. Object Properties (3 tests)
+11. Selection & Management (5 tests)
+12. Error Handling (1 test)
+
+Example output:
+```
+RHINO MCP COMPREHENSIVE TEST SUITE
+======================================================================
+
+Checking Rhino connection...
+Connection OK
+
+[1/11] SCENE UNDERSTANDING (2 tests)
+----------------------------------------------------------------------
+  PASS: get_scene_info
+  PASS: get_selected_objects
+
+...
+
+======================================================================
+TEST RESULTS SUMMARY
+======================================================================
+
+Total Tests:  51
+Passed:       51 (100.0%)
+Failed:       0 (0.0%)
+
+SUCCESS: All tests passed!
+======================================================================
+```
+
+## File Structure
+
 ```
 rhino_mcp/
+├── rhino_listener.py                 # Rhino listener (49 commands)
 ├── src/
-│   ├── server.py          # Main MCP server entry point
-│   ├── tools/             # Tool modules by category
-│   │   ├── geometry.py    # Basic geometry tools
-│   │   ├── solids.py      # 3D primitives
-│   │   ├── curves.py      # Curve operations
-│   │   ├── surfaces.py    # Surface operations
-│   │   ├── layers.py      # Layer management
-│   │   ├── objects.py     # Object operations
-│   │   ├── view.py        # View and camera
-│   │   └── document.py    # Document operations
-│   └── utils/
-│       ├── rhino_comm.py  # Socket communication
-│       └── validators.py  # Input validation
-├── rhino_listener.py      # Rhino-side listener script
-├── requirements.txt       # Python dependencies
-└── README.md             # This file
+│   └── server.py                     # MCP server (49 tools)
+├── script/                           # Example pattern scripts
+│   ├── linear_array.py               # Line of spheres
+│   ├── grid_pattern.py               # 2D grid of boxes
+│   ├── spiral.py                     # 3D spiral of points
+│   ├── parametric_tower.py           # Lofted twisting tower
+│   ├── fractal_tree.py               # Recursive tree structure
+│   ├── wave_surface.py               # Sine wave surface
+│   └── building_generator.py         # Multi-story building
+├── test_rhino_listener.py            # Test suite (51 tests)
+├── requirements.txt                  # Dependencies
+├── README.md                         # Documentation
+├── MCP.md                            # Claude Desktop guide
+├── SCRIPT.md                         # Direct scripting guide
+├── STYLE.md                          # Code style guide
+└── AI_Development_Guidelines.md      # Development rules
 ```
-
-## How It Works
-
-1. MCP client sends tool request to server
-2. Server generates RhinoScript Python code
-3. Code sent to Rhino via socket on port 54321
-4. Rhino listener executes code in context
-5. Result returned to server and client
 
 ## Troubleshooting
 
-### Connection Refused Error
+### Cannot connect to Rhino
 - Ensure Rhino 7 is running
-- Verify listener script is active in Rhino
-- Check no other process is using port 54321
+- Verify listener script is active
+- Check port 54321 is not blocked
 
-### Script Execution Errors
-- Check Rhino command history for detailed errors
-- Verify object selection when required
-- Ensure valid parameters for operations
+### Invalid syntax error in Rhino
+- Ensure using rhino_listener.py
+- Check IronPython 2.7 compatibility
+- Verify json module available
 
-### Listener Not Starting
-- Check Python is available in Rhino
-- Verify rhinoscriptsyntax module loads correctly
-- Look for error messages in Rhino command line
+### MCP server fails to start
+- Check Python 3.10+ installed
+- Verify mcp and fastmcp installed: `pip install mcp fastmcp`
+- Check paths in Claude config are absolute
+
+### Tools not appearing in Claude
+- Restart Claude Desktop after config change
+- Check MCP server logs in: `~/Library/Logs/Claude/`
+- Verify server.py path is correct
 
 ## Development
 
-### Code Style
-
-Follow STYLE.md and AI_Development_Guidelines.md:
+Follow STYLE.md:
 - Tabs for indentation
-- lowercase_with_underscores for functions/variables
-- Concise docstrings with param descriptions
-- Functions do one thing well
-- Keep line length under 100 characters
+- lowercase_with_underscores naming
+- Concise docstrings
+- Functions do one thing
+- No emojis or decoration
 
-### Adding New Tools
+## Testing Results
 
-1. Add tool definition to appropriate module in src/tools/
-2. Implement handler function
-3. Add to module's TOOLS list
-4. Handler will be automatically registered
+Comprehensive test suite covers all functionality:
+- 51 tests total (49 commands + error handling + multi-param tests)
+- Organized into 12 categories
+- Pass/fail tracking with percentages
+- Detailed error reporting
+- 0.3s delay between tests for stability
+
+## Requirements
+
+- Python 3.10+ (for MCP server)
+- IronPython 2.7 (built into Rhino 7)
+- Rhino 7 for macOS
+- mcp package
+- fastmcp package
+
+## Tested On
+
+This project was developed and tested on:
+- **Hardware:** Mac Silicon (Apple Silicon)
+- **OS:** macOS Tahoe 26.0 (Darwin 25.0.0)
+- **Rhino:** Rhino 7 for macOS
+- **Python:** Python 3.10+
+
+All 51 tests pass on this configuration. Community contributions for other platforms welcome.
 
 ## License
 
@@ -220,3 +346,4 @@ Open source - use freely for any purpose.
 ## Credits
 
 Built for Rhino 7 using RhinoScriptSyntax API and Model Context Protocol.
+Implements safer JSON protocol instead of reference implementation's exec() approach.
