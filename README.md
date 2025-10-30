@@ -343,7 +343,9 @@ All 51 tests pass on this configuration. Community contributions for other platf
 
 ## License
 
-Open source - use freely for any purpose.
+MIT License - see [LICENSE](LICENSE) file for details.
+
+Free to use, modify, and distribute for any purpose.
 
 ## Credits
 
