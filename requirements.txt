@@ -1,2 +1,18 @@
-mcp
-fastmcp
+# ============================================================================
+# MCP Server Dependencies (Python 3.10+)
+# ============================================================================
+# Install with: pip install -r requirements.txt
+
+mcp>=1.0.0
+fastmcp>=0.1.0
+
+# ============================================================================
+# Rhino Listener Dependencies (IronPython 2.7)
+# ============================================================================
+# The following are built into Rhino 7 and NOT pip-installable:
+# - rhinoscriptsyntax (Rhino's Python API)
+# - Rhino (RhinoCommon .NET library)
+# - System (IronPython .NET System library)
+#
+# These are automatically available when running scripts inside Rhino.
+# No additional installation needed.
