@@ -1096,10 +1096,10 @@ def socket_server():
 		server_socket.listen(5)
 
 		print "=" * 60
-		print "RhinoMCP Listener COMPREHENSIVE Edition"
+		print "RhinoMCP Listener"
 		print "=" * 60
 		print "Active on " + SERVER_HOST + ":" + str(SERVER_PORT)
-		print "50+ commands available"
+		print "49 commands available"
 		print "JSON protocol"
 		print "Ready to receive commands"
 		print "=" * 60
@@ -1129,7 +1129,7 @@ def socket_server():
 # ============================================================================
 
 print "=" * 60
-print "RhinoMCP Listener COMPREHENSIVE Edition v3.0"
+print "RhinoMCP Listener"
 print "=" * 60
 print "Starting background listener thread..."
 
@@ -1138,5 +1138,5 @@ listener_thread.daemon = True
 listener_thread.start()
 
 print "Listener started successfully"
-print "50+ commands ready"
+print "49 commands ready"
 print "=" * 60

@@ -41,11 +41,13 @@ Replace `/path/to/rhino_mcp/` with your actual installation path.
 You should see:
 ```
 ============================================================
-RhinoMCP Listener v2.0 - JSON Protocol
+RhinoMCP Listener
 ============================================================
-RhinoMCP Listener active on localhost:54321
-Using JSON protocol
+Active on localhost:54321
+49 commands available
+JSON protocol
 Ready to receive commands
+============================================================
 ```
 
 ### 3. Configure Claude Desktop
