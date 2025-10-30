@@ -346,8 +346,3 @@ All 51 tests pass on this configuration. Community contributions for other platf
 MIT License - see [LICENSE](LICENSE) file for details.
 
 Free to use, modify, and distribute for any purpose.
-
-## Credits
-
-Built for Rhino 7 using RhinoScriptSyntax API and Model Context Protocol.
-Implements safer JSON protocol instead of reference implementation's exec() approach.
