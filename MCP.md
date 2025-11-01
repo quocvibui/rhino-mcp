@@ -18,10 +18,10 @@ Claude Desktop talks to the MCP server, which sends JSON commands over TCP to Rh
 Open Rhino 7 and run:
 
 ```
-_-RunPythonScript "/path/to/rhino_mcp/rhino_listener.py" _Enter
+_-RunPythonScript "/path/to/rhino-mcp/server.py" _Enter
 ```
 
-Replace `/path/to/rhino_mcp/` with your actual installation path.
+Replace `/path/to/rhino-mcp/` with your actual installation path.
 
 You should see:
 ```
@@ -44,13 +44,13 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 	"mcpServers": {
 		"rhino": {
 			"command": "/usr/local/bin/python3",
-			"args": ["/path/to/rhino_mcp/src/server.py"]
+			"args": ["/path/to/rhino-mcp/src/server.py"]
 		}
 	}
 }
 ```
 
-Replace `/path/to/rhino_mcp/` with your actual installation path.
+Replace `/path/to/rhino-mcp/` with your actual installation path.
 
 ### 3. Restart Claude Desktop
 

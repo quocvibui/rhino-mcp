@@ -7,7 +7,7 @@ These scripts demonstrate algorithmic pattern generation in Rhino without using 
 1. Rhino 7 must be running
 2. Rhino listener must be active (run in Rhino):
    ```
-   _-RunPythonScript "/path/to/rhino_mcp/rhino_listener.py" _Enter
+   _-RunPythonScript "/path/to/rhino-mcp/server.py" _Enter
    ```
 
 ## Running Scripts

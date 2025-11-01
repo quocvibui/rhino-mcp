@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Comprehensive test suite for Rhino MCP
-Tests all 56 commands with pass/fail tracking
+Tests all 51 commands with pass/fail tracking
 """
 
 import socket
@@ -91,7 +91,7 @@ def run_tests():
 		print("\nMake sure:")
 		print("1. Rhino 7 is running")
 		print("2. Run this command in Rhino:")
-		print("   _-RunPythonScript \"/path/to/rhino_listener.py\" _Enter")
+		print("   _-RunPythonScript \"/path/to/server.py\" _Enter")
 		return
 	print("Connection OK\n")
 	time.sleep(TEST_DELAY)

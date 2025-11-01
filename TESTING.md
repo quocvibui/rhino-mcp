@@ -7,7 +7,7 @@ Test your Rhino MCP server step-by-step by pasting these prompts into Claude Des
 1. Rhino 7 is running
 2. Run this in Rhino's Python editor:
    ```
-   _-RunPythonScript "/path/to/rhino_listener.py" _Enter
+   _-RunPythonScript "/path/to/rhino-mcp/server.py" _Enter
    ```
 3. MCP server is configured in Claude Desktop
 
@@ -113,7 +113,7 @@ Select the sphere at origin
 Copy the selected objects with displacement (15, 0, 0)
 ```
 
-**Expected**: A copy of the sphere appears 15 units to the right.
+**Expected (FAILED - Haven't specify object types clearly yet)**: A copy of the sphere appears 15 units to the right.
 
 ```
 Select the box
