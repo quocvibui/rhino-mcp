@@ -1,6 +1,6 @@
 # RhinoScriptSyntax Implementation Status
 
-## Our MCP High-Level Tools (49 total):
+## Our MCP High-Level Tools (50 total):
 1. get_scene_info
 2. get_selected_objects
 3. create_point
@@ -50,6 +50,7 @@
 47. select_by_layer
 48. unselect_all
 49. delete_selected
+50. execute_python_code
 
 ## application
 - [ ] AddAlias

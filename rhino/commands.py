@@ -803,3 +803,50 @@ def set_object_layer(params):
 		obj.object_layer(obj_id, layer_name)
 
 	return {"status": "success", "result": {"count": len(objects)}}
+
+
+# ============================================================================
+# CODE EXECUTION
+# ============================================================================
+
+def execute_python_code(params):
+	"""Execute arbitrary Python code with access to rhinoscriptsyntax"""
+	code = params.get("code", "")
+
+	if not code:
+		return {"status": "error", "message": "No code provided"}
+
+	try:
+		import sys
+		import StringIO
+
+		# Capture stdout
+		old_stdout = sys.stdout
+		sys.stdout = StringIO.StringIO()
+
+		# Create namespace with rhinoscriptsyntax and common modules
+		namespace = {
+			"rs": rs,
+			"rhinoscriptsyntax": rs,
+			"Rhino": Rhino,
+			"System": System,
+			"math": math,
+			"__builtins__": __builtins__
+		}
+
+		# Execute code
+		exec(code, namespace)
+
+		# Get output
+		output = sys.stdout.getvalue()
+		sys.stdout = old_stdout
+
+		# Redraw
+		document.redraw()
+
+		return {"status": "success", "result": {"message": "Code executed successfully", "output": output}}
+
+	except Exception as e:
+		if 'old_stdout' in locals():
+			sys.stdout = old_stdout
+		return {"status": "error", "message": "Execution error: {0}".format(str(e))}

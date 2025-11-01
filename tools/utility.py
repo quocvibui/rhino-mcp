@@ -65,3 +65,30 @@ def register_tools(mcp):
 			return "Volume: {0}".format(volume)
 		except Exception as e:
 			return "Error: {0}".format(str(e))
+
+	@mcp.tool()
+	def execute_python_code(code: str) -> str:
+		"""
+		Execute arbitrary Python code in Rhino with access to rhinoscriptsyntax.
+		Use this for complex operations like loops, conditionals, and mathematical patterns.
+		The code has access to 'rs' (rhinoscriptsyntax module) and 'math' module.
+
+		Example:
+		  import math
+		  for i in range(5):
+		      for j in range(5):
+		          x = i * 10
+		          y = j * 10
+		          rs.AddSphere((x, y, 0), 2)
+
+		code: Python code to execute
+		"""
+		try:
+			result = send_to_rhino("execute_python_code", {"code": code})
+			message = result.get("message", "Code executed")
+			output = result.get("output", "")
+			if output:
+				return "{0}\nOutput: {1}".format(message, output)
+			return message
+		except Exception as e:
+			return "Error: {0}".format(str(e))

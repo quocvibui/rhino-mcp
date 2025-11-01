@@ -75,7 +75,9 @@ from rhino.commands import (
 	unselect_all,
 	delete_selected,
 	get_selected_objects,
-	get_scene_info
+	get_scene_info,
+	# Code execution
+	execute_python_code
 )
 
 SERVER_HOST = "localhost"
@@ -152,7 +154,9 @@ def execute_command(command_dict):
 			"unselect_all": unselect_all,
 			"delete_selected": delete_selected,
 			"get_selected_objects": get_selected_objects,
-			"get_scene_info": get_scene_info
+			"get_scene_info": get_scene_info,
+			# Code execution
+			"execute_python_code": execute_python_code
 		}
 
 		handler = command_map.get(cmd_type)
@@ -219,7 +223,7 @@ def socket_server():
 		print "RhinoMCP Listener"
 		print "=" * 60
 		print "Active on " + SERVER_HOST + ":" + str(SERVER_PORT)
-		print "49 commands available"
+		print "50 commands available"
 		print "JSON protocol"
 		print "Ready to receive commands"
 		print "=" * 60
@@ -258,5 +262,5 @@ listener_thread.daemon = True
 listener_thread.start()
 
 print "Listener started successfully"
-print "49 commands ready"
+print "50 commands ready"
 print "=" * 60

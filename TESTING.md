@@ -389,6 +389,12 @@ Mirror the selected objects across a line from (0, 0, 0) to (10, 0, 0)
 
 ---
 
+### 13. Code Execution via Python
+```
+Create for me a spiral staircase in Rhino
+```
+**Expected**: Something to be generated on screen
+
 ## Troubleshooting
 
 If a command fails:

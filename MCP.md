@@ -6,7 +6,7 @@ This guide explains how to use the MCP server to let Claude AI control Rhino 7 i
 
 ```
 Claude Desktop <--> MCP Server <--> Rhino Listener <--> Rhino 7
-   (UI)           (src/server.py)  (rhino_listener.py)  (3D modeling)
+   (UI)             (main.py)        (server.py)     (3D modeling)
 ```
 
 Claude Desktop talks to the MCP server, which sends JSON commands over TCP to Rhino.
@@ -28,10 +28,9 @@ You should see:
 ============================================================
 RhinoMCP Listener
 ============================================================
-Active on localhost:54321
-49 commands available
-JSON protocol
-Ready to receive commands
+Starting background listener thread...
+Listener started successfully
+50 commands ready
 ============================================================
 ```
 
@@ -64,6 +63,13 @@ Get scene info from Rhino
 ```
 
 Claude should respond with information about your Rhino scene (object counts, layers, units).
+
+### 5. Customizing your Claude Project
+Our current Rhino MCP allows for code execution, this means Claude can execute code directly
+in Rhino. In order to get the best result. Drop the documents in `resources/` into your project folder. Add this instruction to the project:
+```
+If you have problems with debugging, search up: "https://developer.rhino3d.com/api/RhinoScriptSyntax/" or "RhinoAPI", "RhinoScriptSyntax"
+```
 
 ## Usage Examples
 
@@ -107,6 +113,12 @@ Set current layer to "Walls"
 Create a box (it will go on the Walls layer)
 ```
 
+### Code Execution
+```
+Create for me a Voronoi pattern
+Create for me grid with varying circle sizes
+```
+
 ## How It Works
 
 1. You type a natural language request in Claude Desktop
@@ -116,22 +128,6 @@ Create a box (it will go on the Walls layer)
 5. Rhino listener executes the command using rhinoscriptsyntax
 6. Result is returned as JSON through the chain back to Claude
 7. Claude presents the result in natural language
-
-## Available Tools
-
-The MCP server exposes 49 tools:
-
-- Scene understanding (2): get_scene_info, get_selected_objects
-- Basic geometry (7): points, lines, circles, arcs, ellipses, polylines, curves
-- 3D solids (5): box, sphere, cylinder, cone, torus
-- Transformations (6): move, rotate, scale, mirror, copy, array
-- Boolean operations (3): union, difference, intersection
-- Curve operations (5): join, explode, offset, fillet, extend
-- Surface operations (3): extrude, revolve, loft
-- Layer management (6): create, delete, set current, color, visibility, list
-- Analysis (4): distance, length, area, volume
-- Object properties (3): name, color, layer
-- Selection (5): all, by type, by layer, unselect, delete
 
 ## Troubleshooting
 
@@ -146,7 +142,7 @@ The MCP server exposes 49 tools:
 
 - Ensure Rhino 7 is running
 - Verify listener script is active (check Rhino command line for status message)
-- Test connection manually: `python3 test_rhino_listener.py`
+- Test connection manually: `python3 test.py`
 
 ### Commands fail
 
@@ -202,7 +198,7 @@ Scale them by factor 1.5
 - Complex parametric modeling is better done with Grasshopper
 - File I/O operations not supported (save/open/export)
 
-## Advanced Usage
+## Advanced Usage (Unstable)
 
 ### Multi-step Workflows
 
@@ -235,6 +231,8 @@ Color them in a gradient from red to blue
 
 ## See Also
 
-- SCRIPT.md - Write standalone Python scripts to control Rhino
-- README.md - Full project documentation
-- test_rhino_listener.py - Example of all 49 commands
+- **[SCRIPT.md](SCRIPT.md)** - Write standalone Python scripts to control Rhino
+- **[README.md](README.md)** - Full project documentation
+- **[IMPLEMENTED.md](IMPLEMENTED.md)** - Implemented features
+- **[TESTING.md](TESTING.md)** - How to test with Claude
+- **[test.py](test.py)** - Test of 49 commands

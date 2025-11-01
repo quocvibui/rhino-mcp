@@ -4,10 +4,10 @@ AI-powered 3D modeling in Rhino 7 through Model Context Protocol.
 
 ## Overview
 
-Production-ready MCP server with 49 tools for geometry creation, transformation, boolean operations, curve/surface manipulation, layer management, and analysis in Rhino 7.
+Production-ready MCP server with 50 tools for code execution, geometry creation, transformation, boolean operations, curve/surface manipulation, layer management, and analysis in Rhino 7.
 
 **Key Features:**
-- 49 comprehensive 3D modeling tools
+- 50 comprehensive 3D modeling tools
 - Safe JSON protocol over TCP sockets
 - Modular architecture for easy expansion
 - IronPython 2.7 compatible (Rhino 7)
@@ -33,9 +33,9 @@ You should see:
 ============================================================
 RhinoMCP Listener
 ============================================================
-Active on localhost:54321
-49 commands available
-Ready to receive commands
+Starting background listener thread...
+Listener started successfully
+50 commands ready
 ============================================================
 ```
 
@@ -58,13 +58,20 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 Try: `Get scene info from Rhino and create a box at origin`
 
+### 5. Customizing your Claude Project
+Our current Rhino MCP allows for code execution, this means Claude can execute code directly
+in Rhino. In order to get the best result. Drop the documents in `resources/` into your project folder. Add this instruction to the project:
+```
+If you have problems with debugging, search up: "https://developer.rhino3d.com/api/RhinoScriptSyntax/" or "RhinoAPI", "RhinoScriptSyntax"
+```
+
 ## Documentation
 
 - **[MCP.md](MCP.md)** - Using with Claude Desktop
 - **[SCRIPT.md](SCRIPT.md)** - Direct scripting without Claude
 - **[TESTING.md](TESTING.md)** - Testing guide
+- **[IMPLEMENTED.md](IMPLEMENTED.md)** - Implementation features and status
 - **[STYLE.md](STYLE.md)** - Code style guide
-- **[IMPLEMENTED.md](IMPLEMENTED.md)** - Implementation status
 
 ## Architecture
 
@@ -95,38 +102,6 @@ Try: `Get scene info from Rhino and create a box at origin`
 2. **Socket Server** (`server.py`) - IronPython 2.7, runs inside Rhino
 3. **Rhino Modules** (`rhino/`) - 26 modules organized by API category
 
-## Tools (49)
-
-### Geometry (12)
-Points, lines, circles, arcs, ellipses, polylines, curves, boxes, spheres, cylinders, cones, torus
-
-### Transformations (6)
-Move, rotate, scale, mirror, copy, linear array
-
-### Boolean Operations (3)
-Union, difference, intersection
-
-### Curve Operations (5)
-Join, explode, offset, fillet, extend
-
-### Surface Operations (3)
-Extrude straight, revolve, loft
-
-### Layer Management (6)
-Create, delete, set current, color, visibility, list
-
-### Analysis (4)
-Measure distance, curve length, area, volume
-
-### Selection (5)
-Select all, by type, by layer, unselect, delete selected
-
-### Object Properties (3)
-Set name, color, layer
-
-### Scene Understanding (2)
-Get scene info, get selected objects
-
 ## File Structure
 
 ```
@@ -143,15 +118,17 @@ rhino-mcp/
 │   ├── selection.py           # Selection tools
 │   └── ...                    # 21 more modules
 ├── rhino/                     # RhinoScriptSyntax wrappers (26 modules)
-│   ├── commands.py            # High-level command routing (49 commands)
+│   ├── commands.py            # High-level command routing (50 commands)
 │   ├── curve.py               # Curve functions
 │   ├── surface.py             # Surface functions
 │   ├── object.py              # Object manipulation
 │   └── ...                    # 22 more modules
-└── script/                    # Example scripts (7)
-    ├── linear_array.py
-    ├── spiral.py
-    └── ...
+├── script/                    # Example scripts (7)
+│    ├── linear_array.py
+│    ├── spiral.py
+│    └── ...
+└── resources/                 # Drop into your Claude Project folder
+    └── ...  
 ```
 
 ## Usage Examples
@@ -177,6 +154,9 @@ Set current layer to "Walls"
 # Analysis
 Measure the distance between (0,0,0) and (10,0,0)
 Select the circle and measure its area
+
+# Code Execution
+Create for me a spiral staircase in Rhino
 ```
 
 ## Testing
@@ -222,6 +202,8 @@ Tests all 49 commands plus error handling (51 tests total). To do MCP testing, c
 - Python 3.10+
 
 All 51 tests pass. Community contributions for other platforms welcome.
+
+**Note:** rotate_objects may fail on first run due to macOS UI thread initialization - rerun `test.py` if it fails. Sometimes Rhino would crash, although uncommon.
 
 ## License
 

@@ -4,7 +4,7 @@ This guide explains how to write standalone Python scripts that control Rhino al
 
 ## Overview
 
-The Rhino listener (rhino_listener.py) is a standalone JSON API server that any program can connect to. You don't need the MCP server or Claude Desktop to use it.
+The Rhino listener (server.py) is a standalone JSON API server that any program can connect to. You don't need the MCP server or Claude Desktop to use it.
 
 ## Architecture
 
@@ -290,20 +290,6 @@ def safe_command(command_type, params=None, retries=3):
 # Use it
 result = safe_command("create_sphere", {"center": [0, 0, 0], "radius": 10})
 ```
-
-## Command Reference
-
-All 49 commands are available. See test_rhino_listener.py for examples of every command.
-
-### Common Commands
-
-- `create_box`, `create_sphere`, `create_cylinder`, `create_cone`, `create_torus`
-- `create_point`, `create_line`, `create_circle`, `create_arc`, `create_ellipse`
-- `move_objects`, `rotate_objects`, `scale_objects`, `copy_objects`, `array_linear`
-- `boolean_union`, `boolean_difference`, `boolean_intersection`
-- `extrude_curve_straight`, `revolve_curve`, `loft_curves`
-- `select_all`, `select_by_type`, `select_by_layer`, `unselect_all`, `delete_selected`
-
 ## Tips
 
 ### Performance
@@ -369,6 +355,8 @@ generate_building(floors=8, floor_height=3.5, width=40, depth=25)
 
 ## See Also
 
-- MCP.md - Using with Claude Desktop
-- README.md - Full project documentation
-- test_rhino_listener.py - All 49 commands with examples
+- **[MCP.md](MCP.md)** - Using with Claude Desktop
+- **[README.md](README.md)** - Full project documentation
+- **[IMPLEMENTED.md](IMPLEMENTED.md)** - Implemented features
+- **[TESTING.md](TESTING.md)** - How to test with Claude
+- **[test.py](test.py)** - Test of 49 commands
