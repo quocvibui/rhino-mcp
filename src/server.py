@@ -365,8 +365,8 @@ def move_objects(dx: float, dy: float, dz: float) -> str:
 	try:
 		params = {"displacement": [dx, dy, dz]}
 		result = send_to_rhino("move_objects", params)
-		count = result.get("count", 0)
-		return "Moved {0} objects by ({1}, {2}, {3})".format(count, dx, dy, dz)
+		moved = result.get("moved", 0)
+		return "Moved {0} objects by ({1}, {2}, {3})".format(moved, dx, dy, dz)
 	except Exception as e:
 		return "Error: {0}".format(str(e))
 
@@ -375,7 +375,7 @@ def move_objects(dx: float, dy: float, dz: float) -> str:
 def rotate_objects(center_x: float, center_y: float, center_z: float,
 				   angle: float) -> str:
 	"""
-	Rotate selected objects around a point
+	Rotate selected objects around Z-axis
 	center_x, center_y, center_z: Rotation center point
 	angle: Rotation angle in degrees
 	Objects must be selected in Rhino first
@@ -407,8 +407,8 @@ def scale_objects(center_x: float, center_y: float, center_z: float,
 			"scale": scale_factor
 		}
 		result = send_to_rhino("scale_objects", params)
-		count = result.get("count", 0)
-		return "Scaled {0} objects by factor {1}".format(count, scale_factor)
+		scaled = result.get("scaled", 0)
+		return "Scaled {0} objects by factor {1}".format(scaled, scale_factor)
 	except Exception as e:
 		return "Error: {0}".format(str(e))
 
@@ -417,9 +417,9 @@ def scale_objects(center_x: float, center_y: float, center_z: float,
 def mirror_objects(start_x: float, start_y: float, start_z: float,
 				   end_x: float, end_y: float, end_z: float) -> str:
 	"""
-	Mirror selected objects across a plane defined by a line
-	start_x, start_y, start_z: Mirror plane line start point
-	end_x, end_y, end_z: Mirror plane line end point
+	Mirror selected objects across a line
+	start_x, start_y, start_z: Start point of mirror line
+	end_x, end_y, end_z: End point of mirror line
 	Objects must be selected in Rhino first
 	"""
 	try:
@@ -428,8 +428,8 @@ def mirror_objects(start_x: float, start_y: float, start_z: float,
 			"end": [end_x, end_y, end_z]
 		}
 		result = send_to_rhino("mirror_objects", params)
-		count = result.get("count", 0)
-		return "Mirrored {0} objects".format(count)
+		mirrored = result.get("mirrored", 0)
+		return "Mirrored {0} objects".format(mirrored)
 	except Exception as e:
 		return "Error: {0}".format(str(e))
 
@@ -446,8 +446,8 @@ def copy_objects(dx: float, dy: float, dz: float) -> str:
 	try:
 		params = {"displacement": [dx, dy, dz]}
 		result = send_to_rhino("copy_objects", params)
-		count = result.get("count", 0)
-		return "Copied {0} objects".format(count)
+		copied = result.get("copied", 0)
+		return "Copied {0} objects".format(copied)
 	except Exception as e:
 		return "Error: {0}".format(str(e))
 
@@ -466,8 +466,8 @@ def array_linear(dx: float, dy: float, dz: float, count: int) -> str:
 			"count": count
 		}
 		result = send_to_rhino("array_linear", params)
-		total = result.get("count", 0)
-		return "Created linear array with {0} total objects".format(total)
+		created = result.get("created", 0)
+		return "Created linear array with {0} new objects".format(created)
 	except Exception as e:
 		return "Error: {0}".format(str(e))
 
@@ -587,8 +587,7 @@ def extend_curve(extension: float) -> str:
 	try:
 		params = {"extension": extension}
 		result = send_to_rhino("extend_curve", params)
-		count = result.get("count", 0)
-		return "Extended {0} curves by {1}".format(count, extension)
+		return "Extended curve by {0}".format(extension)
 	except Exception as e:
 		return "Error: {0}".format(str(e))
 
@@ -604,8 +603,7 @@ def extrude_curve_straight(height: float) -> str:
 	try:
 		params = {"height": height}
 		result = send_to_rhino("extrude_curve_straight", params)
-		count = result.get("count", 0)
-		return "Extruded {0} curves with height {1}".format(count, height)
+		return "Extruded curves with height {0}".format(height)
 	except Exception as e:
 		return "Error: {0}".format(str(e))
 

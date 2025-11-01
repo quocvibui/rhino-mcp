@@ -53,11 +53,29 @@ def create_circle(params):
 
 
 def create_arc(params):
-	"""Create an arc through 3 points"""
-	start = params.get("start", [0, 0, 0])
-	mid = params.get("mid", [1, 1, 0])
-	end = params.get("end", [2, 0, 0])
-	arc_id = rs.AddArc3Pt(start, mid, end)
+	"""Create an arc with center, radius, and angles"""
+	center = params.get("center", [0, 0, 0])
+	radius = params.get("radius", 5)
+	start_angle = params.get("start_angle", 0)
+	end_angle = params.get("end_angle", 180)
+
+	import math
+	plane = rs.PlaneFromNormal(center, [0, 0, 1])
+	start_rad = math.radians(start_angle)
+	end_rad = math.radians(end_angle)
+
+	start_pt = [center[0] + radius * math.cos(start_rad),
+				center[1] + radius * math.sin(start_rad),
+				center[2]]
+	end_pt = [center[0] + radius * math.cos(end_rad),
+			  center[1] + radius * math.sin(end_rad),
+			  center[2]]
+	mid_angle = (start_rad + end_rad) / 2
+	mid_pt = [center[0] + radius * math.cos(mid_angle),
+			  center[1] + radius * math.sin(mid_angle),
+			  center[2]]
+
+	arc_id = rs.AddArc3Pt(start_pt, mid_pt, end_pt)
 	if arc_id:
 		rs.Redraw()
 		return {"status": "success", "result": {"id": str(arc_id), "type": "arc"}}
@@ -67,10 +85,10 @@ def create_arc(params):
 def create_ellipse(params):
 	"""Create an ellipse"""
 	center = params.get("center", [0, 0, 0])
-	radius_x = params.get("radius_x", 5)
-	radius_y = params.get("radius_y", 3)
+	x_radius = params.get("x_radius", 5)
+	y_radius = params.get("y_radius", 3)
 	plane = rs.PlaneFromNormal(center, (0, 0, 1))
-	ellipse_id = rs.AddEllipse(plane, radius_x, radius_y)
+	ellipse_id = rs.AddEllipse(plane, x_radius, y_radius)
 	if ellipse_id:
 		rs.Redraw()
 		return {"status": "success", "result": {"id": str(ellipse_id), "type": "ellipse"}}
@@ -194,15 +212,15 @@ def create_torus(params):
 # ============================================================================
 
 def move_objects(params):
-	"""Move selected objects by vector"""
-	vector = params.get("vector", [0, 0, 0])
+	"""Move selected objects by displacement"""
+	displacement = params.get("displacement", [0, 0, 0])
 	objects = rs.SelectedObjects()
 
 	if not objects:
 		return {"status": "error", "message": "No objects selected"}
 
 	for obj in objects:
-		rs.MoveObject(obj, vector)
+		rs.MoveObject(obj, displacement)
 
 	rs.Redraw()
 	return {"status": "success", "result": {"moved": len(objects)}}
@@ -236,32 +254,32 @@ def rotate_objects(params):
 
 def scale_objects(params):
 	"""Scale selected objects"""
-	origin = params.get("origin", [0, 0, 0])
-	factor = params.get("factor", 1.0)
+	center = params.get("center", [0, 0, 0])
+	scale_factor = params.get("scale", 1.0)
 
 	objects = rs.SelectedObjects()
 	if not objects:
 		return {"status": "error", "message": "No objects selected"}
 
-	scale = [factor, factor, factor]
+	scale = [scale_factor, scale_factor, scale_factor]
 	for obj in objects:
-		rs.ScaleObject(obj, origin, scale)
+		rs.ScaleObject(obj, center, scale)
 
 	rs.Redraw()
 	return {"status": "success", "result": {"scaled": len(objects)}}
 
 
 def mirror_objects(params):
-	"""Mirror selected objects"""
-	plane_origin = params.get("plane_origin", [0, 0, 0])
-	plane_normal = params.get("plane_normal", [1, 0, 0])
+	"""Mirror selected objects across line"""
+	start = params.get("start", [0, 0, 0])
+	end = params.get("end", [10, 0, 0])
 
 	objects = rs.SelectedObjects()
 	if not objects:
 		return {"status": "error", "message": "No objects selected"}
 
 	for obj in objects:
-		rs.MirrorObject(obj, plane_origin, plane_normal)
+		rs.MirrorObject(obj, start, end)
 
 	rs.Redraw()
 	return {"status": "success", "result": {"mirrored": len(objects)}}
@@ -269,7 +287,7 @@ def mirror_objects(params):
 
 def copy_objects(params):
 	"""Copy selected objects"""
-	vector = params.get("vector", [10, 0, 0])
+	displacement = params.get("displacement", [10, 0, 0])
 
 	objects = rs.SelectedObjects()
 	if not objects:
@@ -277,7 +295,7 @@ def copy_objects(params):
 
 	copied = []
 	for obj in objects:
-		new_obj = rs.CopyObject(obj, vector)
+		new_obj = rs.CopyObject(obj, displacement)
 		copied.append(str(new_obj))
 
 	rs.Redraw()
@@ -286,7 +304,7 @@ def copy_objects(params):
 
 def array_linear(params):
 	"""Create linear array of selected objects"""
-	vector = params.get("vector", [10, 0, 0])
+	displacement = params.get("displacement", [10, 0, 0])
 	count = params.get("count", 3)
 
 	objects = rs.SelectedObjects()
@@ -296,7 +314,7 @@ def array_linear(params):
 	total_created = 0
 	for obj in objects:
 		for i in range(1, count):
-			offset = [vector[j] * i for j in range(3)]
+			offset = [displacement[j] * i for j in range(3)]
 			rs.CopyObject(obj, offset)
 			total_created += 1
 
@@ -498,15 +516,15 @@ def fillet_curves(params):
 
 def extend_curve(params):
 	"""Extend selected curve"""
-	length = params.get("length", 5)
-	side = params.get("side", 1)
+	extension = params.get("extension", 5)
+	side = params.get("side", 2)
 
 	curves = rs.SelectedObjects()
 	if not curves:
 		return {"status": "error", "message": "No curve selected"}
 
 	curve = curves[0]
-	result = rs.ExtendCurveLength(curve, side, 0, length)
+	result = rs.ExtendCurveLength(curve, 2, side, extension)
 
 	if result:
 		rs.Redraw()
@@ -521,7 +539,7 @@ def extend_curve(params):
 
 def extrude_curve_straight(params):
 	"""Extrude curve straight"""
-	direction = params.get("direction", [0, 0, 10])
+	height = params.get("height", 10)
 
 	curves = rs.SelectedObjects()
 	if not curves:
@@ -529,7 +547,7 @@ def extrude_curve_straight(params):
 
 	curve = curves[0]
 	start = (0, 0, 0)
-	end = tuple(direction)
+	end = (0, 0, height)
 
 	result = rs.ExtrudeCurveStraight(curve, start, end)
 	if result:
@@ -557,13 +575,9 @@ def revolve_curve(params):
 	curve = curves[0]
 
 	try:
-		axis_line = rs.AddLine(tuple(axis_start), tuple(axis_end))
-		if not axis_line:
-			return {"status": "error", "message": "Failed to create axis line"}
-
-		# rs.AddRevSrf(curve, axis, start_angle, end_angle)
-		result = rs.AddRevSrf(curve, axis_line, 0, angle)
-		rs.DeleteObject(axis_line)
+		# AddRevSrf expects an array of two 3-D points for the axis
+		axis = [tuple(axis_start), tuple(axis_end)]
+		result = rs.AddRevSrf(curve, axis, 0, angle)
 
 		if result:
 			rs.Redraw()
