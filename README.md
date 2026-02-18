@@ -1,16 +1,16 @@
 # Rhino MCP
 
-AI-powered 3D modeling in Rhino 7 through Model Context Protocol.
+AI-powered 3D modeling in Rhino 8 through Model Context Protocol.
 
 ## Overview
 
-Production-ready MCP server with 50 tools for code execution, geometry creation, transformation, boolean operations, curve/surface manipulation, layer management, and analysis in Rhino 7.
+MCP server with 50 tools for code execution, geometry creation, transformation, boolean operations, curve/surface manipulation, layer management, and analysis in Rhino 8.
 
 **Key Features:**
 - 50 comprehensive 3D modeling tools
 - Safe JSON protocol over TCP sockets
 - Modular architecture for easy expansion
-- IronPython 2.7 compatible (Rhino 7)
+- CPython 3 compatible (Rhino 8)
 - Direct scripting API (works without Claude)
 
 ## Quick Start
@@ -23,7 +23,7 @@ pip install -r requirements.txt
 
 ### 2. Start Rhino Listener
 
-In Rhino 7, run:
+In Rhino 8, run:
 ```
 _-RunPythonScript "/path/to/rhino-mcp/server.py" _Enter
 ```
@@ -82,25 +82,25 @@ If you have problems with debugging, search up: "https://developer.rhino3d.com/a
          │ MCP Protocol
          ▼
 ┌─────────────────┐
-│    main.py      │ FastMCP server with 49 tools
+│    main.py      │ FastMCP server with 50 tools
 │    tools/       │ Modular tool definitions
 └────────┬────────┘
          │ JSON over TCP (localhost:54321)
          ▼
 ┌─────────────────┐
-│   server.py     │ Socket server (IronPython 2.7)
+│   server.py     │ Socket server (CPython 3 - Rhino 8)
 │   rhino/        │ RhinoScriptSyntax wrappers
 └─────────────────┘
          │
          ▼
-    Rhino 7 API
+    Rhino 8 API
 ```
 
 **Three Layers:**
 
-1. **MCP Layer** (`main.py`, `tools/`) - Python 3.10+, exposes 49 tools to Claude
-2. **Socket Server** (`server.py`) - IronPython 2.7, runs inside Rhino
-3. **Rhino Modules** (`rhino/`) - 26 modules organized by API category
+1. **MCP Layer** (`main.py`, `tools/`) - Python 3.10+, exposes 50 tools to Claude
+2. **Socket Server** (`server.py`) - CPython 3, runs inside Rhino 8
+3. **Rhino Modules** (`rhino/`) - Organized by API category
 
 ## File Structure
 
@@ -109,26 +109,34 @@ rhino-mcp/
 ├── main.py                    # MCP server entry point
 ├── server.py                  # Rhino socket server
 ├── test.py                    # Test suite (51 tests)
-├── tools/                     # MCP tool definitions (26 modules)
+├── tools/                     # MCP tool definitions
 │   ├── utils.py               # Shared socket communication
 │   ├── geometry.py            # Geometry creation tools
-│   ├── transformation.py      # Transform tools
-│   ├── surface.py             # Surface tools
+│   ├── surface.py             # Surface/solid tools
 │   ├── curve.py               # Curve tools
+│   ├── transformation.py      # Transform tools
+│   ├── layer.py               # Layer management tools
+│   ├── object.py              # Object property tools
 │   ├── selection.py           # Selection tools
-│   └── ...                    # 21 more modules
-├── rhino/                     # RhinoScriptSyntax wrappers (26 modules)
+│   ├── document.py            # Document/scene tools
+│   └── utility.py             # Measurement + code execution
+├── rhino/                     # RhinoScriptSyntax wrappers
 │   ├── commands.py            # High-level command routing (50 commands)
 │   ├── curve.py               # Curve functions
 │   ├── surface.py             # Surface functions
 │   ├── object.py              # Object manipulation
-│   └── ...                    # 22 more modules
-├── script/                    # Example scripts (7)
-│    ├── linear_array.py
-│    ├── spiral.py
-│    └── ...
+│   ├── selection.py           # Selection functions
+│   ├── layer.py               # Layer functions
+│   ├── geometry.py            # Geometry functions
+│   ├── plane.py               # Plane functions
+│   ├── document.py            # Document functions
+│   └── utility.py             # Utility functions
+├── script/                    # Example scripts
+│   ├── linear_array.py
+│   ├── spiral.py
+│   └── ...
 └── resources/                 # Drop into your Claude Project folder
-    └── ...  
+    └── ...
 ```
 
 ## Usage Examples
@@ -166,16 +174,16 @@ Run comprehensive test suite:
 python3 test.py
 ```
 
-Tests all 49 commands plus error handling (51 tests total). To do MCP testing, check out [TESTING.md](TESTING.md) for details.
+Tests all 50 commands plus error handling (51 tests total). See [TESTING.md](TESTING.md) for details.
 
 ## Troubleshooting
 
 **Cannot connect to Rhino**
-- Ensure Rhino 7 is running with listener active
+- Ensure Rhino 8 is running with listener active
 - Check port 54321 is available
 
 **Invalid syntax in Rhino**
-- Use `server.py` (IronPython 2.7), not `main.py`
+- server.py and rhino/ modules use CPython 3 (Rhino 8)
 - Verify `rhino/` module is accessible
 
 **MCP server fails**
@@ -190,20 +198,18 @@ Tests all 49 commands plus error handling (51 tests total). To do MCP testing, c
 ## Requirements
 
 - **Python 3.10+** (for MCP server)
-- **IronPython 2.7** (built into Rhino 7)
-- **Rhino 7** for macOS
+- **Rhino 8** for macOS (ships with CPython 3)
 - **mcp** and **fastmcp** packages
 
 ## Tested On
 
-- macOS Tahoe 26.0 (Darwin 25.0.0)
-- Mac Silicon (Apple Silicon)
-- Rhino 7 for macOS
+- macOS (Apple Silicon)
+- Rhino 8 for macOS
 - Python 3.10+
 
 All 51 tests pass. Community contributions for other platforms welcome.
 
-**Note:** rotate_objects may fail on first run due to macOS UI thread initialization - rerun `test.py` if it fails. Sometimes Rhino would crash, although uncommon.
+**Note:** All commands are dispatched to Rhino's UI thread to prevent macOS threading crashes.
 
 ## License
 

@@ -18,12 +18,11 @@ def register_tools(mcp):
 		Objects must be selected in Rhino first
 		"""
 		try:
-			params = {"displacement": [dx, dy, dz]}
-			result = send_to_rhino("move_objects", params)
+			result = send_to_rhino("move_objects", {"displacement": [dx, dy, dz]})
 			moved = result.get("moved", 0)
-			return "Moved {0} objects by ({1}, {2}, {3})".format(moved, dx, dy, dz)
+			return f"Moved {moved} objects by ({dx}, {dy}, {dz})"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def rotate_objects(center_x: float, center_y: float, center_z: float,
@@ -41,9 +40,9 @@ def register_tools(mcp):
 			}
 			result = send_to_rhino("rotate_objects", params)
 			count = result.get("count", 0)
-			return "Rotated {0} objects by {1} degrees".format(count, angle)
+			return f"Rotated {count} objects by {angle} degrees"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def scale_objects(center_x: float, center_y: float, center_z: float,
@@ -61,9 +60,9 @@ def register_tools(mcp):
 			}
 			result = send_to_rhino("scale_objects", params)
 			scaled = result.get("scaled", 0)
-			return "Scaled {0} objects by factor {1}".format(scaled, scale_factor)
+			return f"Scaled {scaled} objects by factor {scale_factor}"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def mirror_objects(start_x: float, start_y: float, start_z: float,
@@ -81,9 +80,9 @@ def register_tools(mcp):
 			}
 			result = send_to_rhino("mirror_objects", params)
 			mirrored = result.get("mirrored", 0)
-			return "Mirrored {0} objects".format(mirrored)
+			return f"Mirrored {mirrored} objects"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def copy_objects(dx: float, dy: float, dz: float) -> str:
@@ -95,12 +94,11 @@ def register_tools(mcp):
 		Objects must be selected in Rhino first
 		"""
 		try:
-			params = {"displacement": [dx, dy, dz]}
-			result = send_to_rhino("copy_objects", params)
+			result = send_to_rhino("copy_objects", {"displacement": [dx, dy, dz]})
 			copied = result.get("copied", 0)
-			return "Copied {0} objects".format(copied)
+			return f"Copied {copied} objects"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def array_linear(dx: float, dy: float, dz: float, count: int) -> str:
@@ -117,6 +115,6 @@ def register_tools(mcp):
 			}
 			result = send_to_rhino("array_linear", params)
 			created = result.get("created", 0)
-			return "Created linear array with {0} new objects".format(created)
+			return f"Created linear array with {created} new objects"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"

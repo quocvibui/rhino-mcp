@@ -30,12 +30,12 @@ def send_to_rhino(command_type, params=None):
 		sock.settimeout(SOCKET_TIMEOUT)
 		sock.connect((RHINO_HOST, RHINO_PORT))
 
-		sock.sendall(json.dumps(command).encode('utf-8'))
+		sock.sendall(json.dumps(command).encode("utf-8"))
 
 		response_data = sock.recv(8192)
 		sock.close()
 
-		response = json.loads(response_data.decode('utf-8'))
+		response = json.loads(response_data.decode("utf-8"))
 
 		if response.get("status") == "error":
 			raise Exception(response.get("message", "Unknown error from Rhino"))
@@ -47,6 +47,6 @@ def send_to_rhino(command_type, params=None):
 	except socket.timeout:
 		raise Exception("Connection timeout. Rhino may be busy.")
 	except json.JSONDecodeError as e:
-		raise Exception("Invalid response from Rhino: {0}".format(str(e)))
+		raise Exception(f"Invalid response from Rhino: {e}")
 	except Exception as e:
-		raise Exception("Communication error: {0}".format(str(e)))
+		raise Exception(f"Communication error: {e}")

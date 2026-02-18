@@ -1,11 +1,11 @@
 # Using Rhino MCP with Claude Desktop
 
-This guide explains how to use the MCP server to let Claude AI control Rhino 7 interactively.
+This guide explains how to use the MCP server to let Claude AI control Rhino 8 interactively.
 
 ## Architecture
 
 ```
-Claude Desktop <--> MCP Server <--> Rhino Listener <--> Rhino 7
+Claude Desktop <--> MCP Server <--> Rhino Listener <--> Rhino 8
    (UI)             (main.py)        (server.py)     (3D modeling)
 ```
 
@@ -15,7 +15,7 @@ Claude Desktop talks to the MCP server, which sends JSON commands over TCP to Rh
 
 ### 1. Start Rhino Listener
 
-Open Rhino 7 and run:
+Open Rhino 8 and run:
 
 ```
 _-RunPythonScript "/path/to/rhino-mcp/server.py" _Enter
@@ -43,7 +43,7 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 	"mcpServers": {
 		"rhino": {
 			"command": "/usr/local/bin/python3",
-			"args": ["/path/to/rhino-mcp/src/server.py"]
+			"args": ["/path/to/rhino-mcp/main.py"]
 		}
 	}
 }
@@ -123,7 +123,7 @@ Create for me grid with varying circle sizes
 
 1. You type a natural language request in Claude Desktop
 2. Claude analyzes your request and decides which MCP tools to call
-3. The MCP server (src/server.py) formats the command as JSON
+3. The MCP server formats the command as JSON
 4. JSON is sent to Rhino listener on localhost:54321
 5. Rhino listener executes the command using rhinoscriptsyntax
 6. Result is returned as JSON through the chain back to Claude
@@ -140,7 +140,7 @@ Create for me grid with varying circle sizes
 
 ### Cannot connect to Rhino
 
-- Ensure Rhino 7 is running
+- Ensure Rhino 8 is running
 - Verify listener script is active (check Rhino command line for status message)
 - Test connection manually: `python3 test.py`
 
@@ -234,5 +234,4 @@ Color them in a gradient from red to blue
 - **[SCRIPT.md](SCRIPT.md)** - Write standalone Python scripts to control Rhino
 - **[README.md](README.md)** - Full project documentation
 - **[IMPLEMENTED.md](IMPLEMENTED.md)** - Implemented features
-- **[TESTING.md](TESTING.md)** - How to test with Claude
-- **[test.py](test.py)** - Test of 49 commands
+- **[TESTING.md](TESTING.md)** - Testing guide

@@ -7,12 +7,12 @@ mcp>=1.0.0
 fastmcp>=0.1.0
 
 # ============================================================================
-# Rhino Listener Dependencies (IronPython 2.7)
+# Rhino Listener Dependencies (CPython 3 - Rhino 8)
 # ============================================================================
-# The following are built into Rhino 7 and NOT pip-installable:
+# The following are built into Rhino 8 and NOT pip-installable:
 # - rhinoscriptsyntax (Rhino's Python API)
-# - Rhino (RhinoCommon .NET library)
-# - System (IronPython .NET System library)
+# - Rhino (RhinoCommon via .NET bridge)
+# - System (.NET System library via bridge)
 #
-# These are automatically available when running scripts inside Rhino.
+# These are automatically available when running scripts inside Rhino 8.
 # No additional installation needed.

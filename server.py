@@ -1,5 +1,5 @@
 # Rhino Listener for MCP - Socket Server
-# Compatible with IronPython 2.7 (Rhino 7)
+# Compatible with CPython 3 (Rhino 8)
 # Handles socket communication and routes commands to rhino module
 
 import sys
@@ -14,6 +14,8 @@ import socket
 import threading
 import json
 import rhinoscriptsyntax as rs
+import Rhino
+import System
 
 # Import all command functions from rhino.commands
 from rhino.commands import (
@@ -175,7 +177,7 @@ def execute_command(command_dict):
 
 def handle_client(client_socket):
 	"""Handle incoming client connection"""
-	incomplete_data = ""
+	incomplete_data = b""
 
 	try:
 		while True:
@@ -186,21 +188,41 @@ def handle_client(client_socket):
 			incomplete_data += data
 
 			try:
-				command = json.loads(incomplete_data)
-				incomplete_data = ""
+				command = json.loads(incomplete_data.decode("utf-8"))
+				incomplete_data = b""
 
-				response = execute_command(command)
+				# Execute command on UI thread to avoid macOS threading crashes
+				# Rhino requires all object modifications to happen on the main thread
+				result_holder = [None]
+				done_event = threading.Event()
+
+				def run_on_ui():
+					try:
+						result_holder[0] = execute_command(command)
+					except Exception as e:
+						result_holder[0] = {"status": "error", "message": "Error: " + str(e)}
+					finally:
+						done_event.set()
+
+				Rhino.RhinoApp.InvokeOnUiThread(System.Action(run_on_ui))
+				done_event.wait(timeout=30)
+
+				if result_holder[0] is None:
+					response = {"status": "error", "message": "Command timed out waiting for UI thread"}
+				else:
+					response = result_holder[0]
+
 				response_json = json.dumps(response)
-				client_socket.send(response_json)
+				client_socket.send(response_json.encode("utf-8"))
 				break
 
-			except ValueError:
+			except (ValueError, json.JSONDecodeError):
 				continue
 
 	except Exception as e:
 		error_msg = json.dumps({"status": "error", "message": "Connection error: " + str(e)})
 		try:
-			client_socket.send(error_msg)
+			client_socket.send(error_msg.encode("utf-8"))
 		except:
 			pass
 	finally:
@@ -219,14 +241,14 @@ def socket_server():
 		server_socket.bind((SERVER_HOST, SERVER_PORT))
 		server_socket.listen(5)
 
-		print "=" * 60
-		print "RhinoMCP Listener"
-		print "=" * 60
-		print "Active on " + SERVER_HOST + ":" + str(SERVER_PORT)
-		print "50 commands available"
-		print "JSON protocol"
-		print "Ready to receive commands"
-		print "=" * 60
+		print("=" * 60)
+		print("RhinoMCP Listener")
+		print("=" * 60)
+		print("Active on " + SERVER_HOST + ":" + str(SERVER_PORT))
+		print("50 commands available")
+		print("JSON protocol")
+		print("Ready to receive commands")
+		print("=" * 60)
 
 		while True:
 			try:
@@ -235,11 +257,11 @@ def socket_server():
 				client_thread.daemon = True
 				client_thread.start()
 			except Exception as e:
-				print "Connection error: " + str(e)
+				print("Connection error: " + str(e))
 				continue
 
 	except Exception as e:
-		print "Failed to start listener: " + str(e)
+		print("Failed to start listener: " + str(e))
 	finally:
 		if server_socket:
 			try:
@@ -252,15 +274,15 @@ def socket_server():
 # STARTUP
 # ============================================================================
 
-print "=" * 60
-print "RhinoMCP Listener"
-print "=" * 60
-print "Starting background listener thread..."
+print("=" * 60)
+print("RhinoMCP Listener")
+print("=" * 60)
+print("Starting background listener thread...")
 
 listener_thread = threading.Thread(target=socket_server)
 listener_thread.daemon = True
 listener_thread.start()
 
-print "Listener started successfully"
-print "50 commands ready"
-print "=" * 60
+print("Listener started successfully")
+print("50 commands ready")
+print("=" * 60)

@@ -32,10 +32,10 @@ def send_command(command_type, params=None):
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.settimeout(5)
 		sock.connect((RHINO_HOST, RHINO_PORT))
-		sock.sendall(json.dumps(command).encode('utf-8'))
+		sock.sendall(json.dumps(command).encode("utf-8"))
 		response_data = sock.recv(8192)
 		sock.close()
-		response = json.loads(response_data.decode('utf-8'))
+		response = json.loads(response_data.decode("utf-8"))
 		return response
 
 	except ConnectionRefusedError:
@@ -50,7 +50,7 @@ def test_command(name, command_type, params=None, expect_error=False):
 
 	if response is None:
 		test_results["failed"].append({"name": name, "error": "No response"})
-		print("  FAIL: {0} - No response".format(name))
+		print(f"  FAIL: {name} - No response")
 		return False
 
 	status = response.get("status")
@@ -58,21 +58,21 @@ def test_command(name, command_type, params=None, expect_error=False):
 	if expect_error:
 		if status == "error":
 			test_results["passed"].append(name)
-			print("  PASS: {0}".format(name))
+			print(f"  PASS: {name}")
 			return True
 		else:
 			test_results["failed"].append({"name": name, "error": "Expected error but got success"})
-			print("  FAIL: {0} - Expected error but got success".format(name))
+			print(f"  FAIL: {name} - Expected error but got success")
 			return False
 	else:
 		if status == "success":
 			test_results["passed"].append(name)
-			print("  PASS: {0}".format(name))
+			print(f"  PASS: {name}")
 			return True
 		else:
 			error_msg = response.get("message", "Unknown error")
 			test_results["failed"].append({"name": name, "error": error_msg})
-			print("  FAIL: {0} - {1}".format(name, error_msg))
+			print(f"  FAIL: {name} - {error_msg}")
 			return False
 
 
@@ -87,11 +87,11 @@ def run_tests():
 	print("Checking Rhino connection...")
 	response = send_command("get_scene_info")
 	if response.get("status") != "success":
-		print("ERROR: Cannot connect to Rhino on port {0}".format(RHINO_PORT))
+		print(f"ERROR: Cannot connect to Rhino on port {RHINO_PORT}")
 		print("\nMake sure:")
-		print("1. Rhino 7 is running")
+		print("1. Rhino 8 is running")
 		print("2. Run this command in Rhino:")
-		print("   _-RunPythonScript \"/path/to/server.py\" _Enter")
+		print('   _-RunPythonScript "/path/to/server.py" _Enter')
 		return
 	print("Connection OK\n")
 	time.sleep(TEST_DELAY)
@@ -414,23 +414,23 @@ def print_results():
 	print("TEST RESULTS SUMMARY")
 	print("=" * 70)
 	print()
-	print("Total Tests:  {0}".format(total))
-	print("Passed:       {0} ({1:.1f}%)".format(passed, percentage))
-	print("Failed:       {0} ({1:.1f}%)".format(failed, 100 - percentage))
+	print(f"Total Tests:  {total}")
+	print(f"Passed:       {passed} ({percentage:.1f}%)")
+	print(f"Failed:       {failed} ({100 - percentage:.1f}%)")
 	print()
 
 	if failed > 0:
 		print("FAILED TESTS:")
 		print("-" * 70)
 		for failure in test_results["failed"]:
-			print("  - {0}".format(failure["name"]))
-			print("    Error: {0}".format(failure["error"]))
+			print(f"  - {failure['name']}")
+			print(f"    Error: {failure['error']}")
 		print()
 
 	if passed == total:
 		print("SUCCESS: All tests passed!")
 	else:
-		print("ATTENTION: {0} test(s) failed. Review above for details.".format(failed))
+		print(f"ATTENTION: {failed} test(s) failed. Review above for details.")
 
 	print("=" * 70)
 

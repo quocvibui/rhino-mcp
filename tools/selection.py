@@ -16,9 +16,9 @@ def register_tools(mcp):
 		try:
 			result = send_to_rhino("select_all")
 			count = result.get("count", 0)
-			return "Selected {0} objects".format(count)
+			return f"Selected {count} objects"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def select_by_type(object_type: str) -> str:
@@ -27,12 +27,11 @@ def register_tools(mcp):
 		object_type: Type to select - 'point', 'curve', 'surface', 'polysurface', 'mesh'
 		"""
 		try:
-			params = {"type": object_type}
-			result = send_to_rhino("select_by_type", params)
+			result = send_to_rhino("select_by_type", {"type": object_type})
 			count = result.get("count", 0)
-			return "Selected {0} {1} objects".format(count, object_type)
+			return f"Selected {count} {object_type} objects"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def select_by_layer(layer_name: str) -> str:
@@ -41,12 +40,11 @@ def register_tools(mcp):
 		layer_name: Layer name to select objects from
 		"""
 		try:
-			params = {"layer": layer_name}
-			result = send_to_rhino("select_by_layer", params)
+			result = send_to_rhino("select_by_layer", {"layer": layer_name})
 			count = result.get("count", 0)
-			return "Selected {0} objects on layer '{1}'".format(count, layer_name)
+			return f"Selected {count} objects on layer '{layer_name}'"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def unselect_all() -> str:
@@ -55,10 +53,10 @@ def register_tools(mcp):
 		Clears the current selection
 		"""
 		try:
-			result = send_to_rhino("unselect_all")
+			send_to_rhino("unselect_all")
 			return "Deselected all objects"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def delete_selected() -> str:
@@ -69,6 +67,6 @@ def register_tools(mcp):
 		try:
 			result = send_to_rhino("delete_selected")
 			deleted = result.get("deleted", 0)
-			return "Deleted {0} objects".format(deleted)
+			return f"Deleted {deleted} objects"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"

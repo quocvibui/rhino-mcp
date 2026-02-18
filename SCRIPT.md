@@ -9,7 +9,7 @@ The Rhino listener (server.py) is a standalone JSON API server that any program 
 ## Architecture
 
 ```
-Your Python Script <--> Rhino Listener <--> Rhino 7
+Your Python Script <--> Rhino Listener <--> Rhino 8
     (algorithm)      (localhost:54321)   (3D modeling)
 ```
 
@@ -39,10 +39,10 @@ def send_command(command_type, params=None):
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.settimeout(5)
 		sock.connect((RHINO_HOST, RHINO_PORT))
-		sock.sendall(json.dumps(command).encode('utf-8'))
+		sock.sendall(json.dumps(command).encode("utf-8"))
 		response_data = sock.recv(8192)
 		sock.close()
-		response = json.loads(response_data.decode('utf-8'))
+		response = json.loads(response_data.decode("utf-8"))
 		return response
 	except Exception as e:
 		return {"status": "error", "message": str(e)}
@@ -109,19 +109,12 @@ import math
 def create_parametric_tower(floors=10, radius=20, height_per_floor=5):
 	"""Create a twisting tower with varying radius"""
 
-	circles = []
-
 	for floor in range(floors):
 		z_height = floor * height_per_floor
-		twist_angle = floor * 10  # 10 degrees per floor
 		floor_radius = radius * (1 - floor * 0.05)  # Taper inward
 
-		# Calculate position with twist
-		x = 0
-		y = 0
-
 		send_command("create_circle", {
-			"center": [x, y, z_height],
+			"center": [0, 0, z_height],
 			"radius": floor_radius
 		})
 		time.sleep(0.1)
@@ -177,14 +170,10 @@ import math
 def create_wave_surface(width=50, depth=50, resolution=10):
 	"""Create a surface from a sine wave"""
 
-	# Create grid of circles at different heights
 	for x in range(resolution):
 		for y in range(resolution):
-			# Calculate position
 			x_pos = (x / resolution) * width
 			y_pos = (y / resolution) * depth
-
-			# Calculate wave height
 			z_height = 5 * math.sin(x * 0.5) * math.cos(y * 0.5)
 
 			send_command("create_circle", {
@@ -248,29 +237,6 @@ setup_layers()
 create_on_layer("Structure", lambda: send_command("create_box", {...}))
 ```
 
-### Analysis and Feedback
-
-```python
-def analyze_model():
-	"""Get information about current model"""
-	scene = send_command("get_scene_info")
-
-	if scene["status"] == "success":
-		result = scene["result"]
-		print(f"Objects: {result['object_count']}")
-		print(f"Layers: {len(result['layers'])}")
-		print(f"Bounds: {result['bounding_box']}")
-
-	# Measure specific object
-	send_command("select_by_type", {"type": "polysurface"})
-	volume = send_command("measure_volume")
-
-	if volume["status"] == "success":
-		print(f"Total volume: {volume['result']['volume']}")
-
-analyze_model()
-```
-
 ### Error Handling
 
 ```python
@@ -290,6 +256,7 @@ def safe_command(command_type, params=None, retries=3):
 # Use it
 result = safe_command("create_sphere", {"center": [0, 0, 0], "radius": 10})
 ```
+
 ## Tips
 
 ### Performance
@@ -358,5 +325,4 @@ generate_building(floors=8, floor_height=3.5, width=40, depth=25)
 - **[MCP.md](MCP.md)** - Using with Claude Desktop
 - **[README.md](README.md)** - Full project documentation
 - **[IMPLEMENTED.md](IMPLEMENTED.md)** - Implemented features
-- **[TESTING.md](TESTING.md)** - How to test with Claude
-- **[test.py](test.py)** - Test of 49 commands
+- **[TESTING.md](TESTING.md)** - Testing guide

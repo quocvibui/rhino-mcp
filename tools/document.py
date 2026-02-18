@@ -20,7 +20,7 @@ def register_tools(mcp):
 			result = send_to_rhino("get_scene_info")
 			return json.dumps(result, indent=2)
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def get_selected_objects() -> str:
@@ -32,4 +32,4 @@ def register_tools(mcp):
 			result = send_to_rhino("get_selected_objects")
 			return json.dumps(result, indent=2)
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"

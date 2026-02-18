@@ -21,10 +21,10 @@ def register_tools(mcp):
 				"name": name,
 				"color": [color_r, color_g, color_b]
 			}
-			result = send_to_rhino("create_layer", params)
-			return "Created layer '{0}'".format(name)
+			send_to_rhino("create_layer", params)
+			return f"Created layer '{name}'"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def delete_layer(name: str) -> str:
@@ -34,11 +34,10 @@ def register_tools(mcp):
 		Layer must be empty (no objects on it)
 		"""
 		try:
-			params = {"name": name}
-			result = send_to_rhino("delete_layer", params)
-			return "Deleted layer '{0}'".format(name)
+			send_to_rhino("delete_layer", {"name": name})
+			return f"Deleted layer '{name}'"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def set_current_layer(name: str) -> str:
@@ -48,11 +47,10 @@ def register_tools(mcp):
 		New objects will be created on this layer
 		"""
 		try:
-			params = {"name": name}
-			result = send_to_rhino("set_current_layer", params)
-			return "Set current layer to '{0}'".format(name)
+			send_to_rhino("set_current_layer", {"name": name})
+			return f"Set current layer to '{name}'"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def set_layer_color(name: str, color_r: int, color_g: int, color_b: int) -> str:
@@ -66,11 +64,10 @@ def register_tools(mcp):
 				"name": name,
 				"color": [color_r, color_g, color_b]
 			}
-			result = send_to_rhino("set_layer_color", params)
-			return "Set layer '{0}' color to RGB({1}, {2}, {3})".format(
-				name, color_r, color_g, color_b)
+			send_to_rhino("set_layer_color", params)
+			return f"Set layer '{name}' color to RGB({color_r}, {color_g}, {color_b})"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def set_layer_visibility(name: str, visible: bool) -> str:
@@ -84,11 +81,11 @@ def register_tools(mcp):
 				"name": name,
 				"visible": visible
 			}
-			result = send_to_rhino("set_layer_visibility", params)
+			send_to_rhino("set_layer_visibility", params)
 			status = "visible" if visible else "hidden"
-			return "Set layer '{0}' to {1}".format(name, status)
+			return f"Set layer '{name}' to {status}"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def list_layers() -> str:
@@ -100,4 +97,4 @@ def register_tools(mcp):
 			result = send_to_rhino("list_layers")
 			return json.dumps(result, indent=2)
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"

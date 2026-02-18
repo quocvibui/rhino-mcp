@@ -20,18 +20,13 @@ def register_tools(mcp):
 		"""
 		try:
 			params = {
-				"width": width,
-				"depth": depth,
-				"height": height,
-				"x": x,
-				"y": y,
-				"z": z
+				"width": width, "depth": depth, "height": height,
+				"x": x, "y": y, "z": z
 			}
-			result = send_to_rhino("create_box", params)
-			return "Created box {0}x{1}x{2} at ({3}, {4}, {5})".format(
-				width, depth, height, x, y, z)
+			send_to_rhino("create_box", params)
+			return f"Created box {width}x{depth}x{height} at ({x}, {y}, {z})"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def create_sphere(center_x: float, center_y: float, center_z: float,
@@ -46,11 +41,10 @@ def register_tools(mcp):
 				"center": [center_x, center_y, center_z],
 				"radius": radius
 			}
-			result = send_to_rhino("create_sphere", params)
-			return "Created sphere with radius {0} at ({1}, {2}, {3})".format(
-				radius, center_x, center_y, center_z)
+			send_to_rhino("create_sphere", params)
+			return f"Created sphere with radius {radius} at ({center_x}, {center_y}, {center_z})"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def create_cylinder(base_x: float, base_y: float, base_z: float,
@@ -67,11 +61,10 @@ def register_tools(mcp):
 				"height": height,
 				"radius": radius
 			}
-			result = send_to_rhino("create_cylinder", params)
-			return "Created cylinder with radius {0}, height {1} at ({2}, {3}, {4})".format(
-				radius, height, base_x, base_y, base_z)
+			send_to_rhino("create_cylinder", params)
+			return f"Created cylinder with radius {radius}, height {height} at ({base_x}, {base_y}, {base_z})"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def create_cone(base_x: float, base_y: float, base_z: float,
@@ -88,11 +81,10 @@ def register_tools(mcp):
 				"height": height,
 				"radius": radius
 			}
-			result = send_to_rhino("create_cone", params)
-			return "Created cone with base radius {0}, height {1} at ({2}, {3}, {4})".format(
-				radius, height, base_x, base_y, base_z)
+			send_to_rhino("create_cone", params)
+			return f"Created cone with base radius {radius}, height {height} at ({base_x}, {base_y}, {base_z})"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def create_torus(center_x: float, center_y: float, center_z: float,
@@ -109,10 +101,10 @@ def register_tools(mcp):
 				"major_radius": major_radius,
 				"minor_radius": minor_radius
 			}
-			result = send_to_rhino("create_torus", params)
-			return "Created torus with radii {0}/{1}".format(major_radius, minor_radius)
+			send_to_rhino("create_torus", params)
+			return f"Created torus with radii {major_radius}/{minor_radius}"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def extrude_curve_straight(height: float) -> str:
@@ -123,11 +115,10 @@ def register_tools(mcp):
 		Curves must be selected in Rhino first
 		"""
 		try:
-			params = {"height": height}
-			result = send_to_rhino("extrude_curve_straight", params)
-			return "Extruded curves with height {0}".format(height)
+			send_to_rhino("extrude_curve_straight", {"height": height})
+			return f"Extruded curves with height {height}"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def revolve_curve(axis_start_x: float, axis_start_y: float, axis_start_z: float,
@@ -148,9 +139,9 @@ def register_tools(mcp):
 			}
 			result = send_to_rhino("revolve_curve", params)
 			count = result.get("count", 0)
-			return "Revolved {0} curves by {1} degrees".format(count, angle)
+			return f"Revolved {count} curves by {angle} degrees"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def loft_curves() -> str:
@@ -160,10 +151,10 @@ def register_tools(mcp):
 		At least 2 curves must be selected in Rhino first
 		"""
 		try:
-			result = send_to_rhino("loft_curves")
+			send_to_rhino("loft_curves")
 			return "Created lofted surface"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def boolean_union() -> str:
@@ -175,9 +166,9 @@ def register_tools(mcp):
 		try:
 			result = send_to_rhino("boolean_union")
 			count = result.get("count", 0)
-			return "Boolean union created {0} result(s)".format(count)
+			return f"Boolean union created {count} result(s)"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def boolean_difference() -> str:
@@ -189,9 +180,9 @@ def register_tools(mcp):
 		try:
 			result = send_to_rhino("boolean_difference")
 			count = result.get("count", 0)
-			return "Boolean difference created {0} result(s)".format(count)
+			return f"Boolean difference created {count} result(s)"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def boolean_intersection() -> str:
@@ -203,6 +194,6 @@ def register_tools(mcp):
 		try:
 			result = send_to_rhino("boolean_intersection")
 			count = result.get("count", 0)
-			return "Boolean intersection created {0} result(s)".format(count)
+			return f"Boolean intersection created {count} result(s)"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"

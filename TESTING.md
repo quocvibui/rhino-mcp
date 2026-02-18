@@ -1,29 +1,117 @@
 # Rhino MCP Testing Guide
 
-Test your Rhino MCP server step-by-step by pasting these prompts into Claude Desktop.
+Complete testing guide for verifying Rhino MCP works correctly with Rhino 8.
 
 ## Prerequisites
 
-1. Rhino 7 is running
-2. Run this in Rhino's Python editor:
-   ```
-   _-RunPythonScript "/path/to/rhino-mcp/server.py" _Enter
-   ```
-3. MCP server is configured in Claude Desktop
+1. **Rhino 8** installed and running
+2. **Python 3.10+** installed on your system
+3. **MCP dependencies** installed: `pip install -r requirements.txt`
 
-## Test Sequence
+## Step 1: Start the Rhino Listener
 
-### 1. Initial Setup & Scene Understanding
+In Rhino 8's command line, run:
+
+```
+_-RunPythonScript "/path/to/rhino-mcp/server.py" _Enter
+```
+
+Replace `/path/to/rhino-mcp/` with your actual path.
+
+You should see this output in Rhino's command line:
+
+```
+============================================================
+RhinoMCP Listener
+============================================================
+Starting background listener thread...
+Listener started successfully
+50 commands ready
+============================================================
+```
+
+If you see errors:
+- **"ModuleNotFoundError"** - Check that `server.py` can find the `rhino/` directory. The script auto-adds its parent directory to `sys.path`.
+- **"Address already in use"** - Port 54321 is occupied. Close any previous Rhino instance or restart Rhino.
+
+## Step 2: Run the Automated Test Suite
+
+Open a terminal and run:
+
+```bash
+cd /path/to/rhino-mcp
+python3 test.py
+```
+
+This runs 51 tests across 11 categories:
+
+| Category | Tests | What's Tested |
+|----------|-------|---------------|
+| Scene Understanding | 2 | get_scene_info, get_selected_objects |
+| Basic Geometry | 7 | point, line, circle, arc, ellipse, polyline, curve |
+| 3D Solids | 5 | box, sphere, cylinder, cone, torus |
+| Transformations | 6 | move, rotate, scale, mirror, copy, array |
+| Boolean Operations | 3 | union, difference, intersection |
+| Curve Operations | 5 | join, explode, offset, fillet, extend |
+| Surface Operations | 3 | extrude, revolve, loft |
+| Layer Management | 6 | create, delete, current, color, visibility, list |
+| Analysis Tools | 4 | distance, curve length, area, volume |
+| Object Properties | 3 | name, color, layer |
+| Selection & Management | 5 | select all, by type, by layer, unselect, delete |
+| Error Handling | 1 | unknown command returns error |
+
+**Expected result:**
+```
+======================================================================
+TEST RESULTS SUMMARY
+======================================================================
+
+Total Tests:  51
+Passed:       51 (100.0%)
+Failed:       0 (0.0%)
+
+SUCCESS: All tests passed!
+======================================================================
+```
+
+### Common Test Failures
+
+**"Cannot connect to Rhino"** - The listener isn't running. Go back to Step 1.
+
+**rotate_objects fails** - All commands now run on the UI thread via `InvokeOnUiThread`. If rotation still fails, restart Rhino and try again.
+
+**Boolean operations fail** - Ensure the scene is clean. Booleans need proper overlapping solids. The test creates its own geometry, but leftover objects from previous runs can interfere.
+
+## Step 3: Test MCP Connection with Claude Desktop
+
+### 3a. Configure Claude Desktop
+
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+	"mcpServers": {
+		"rhino": {
+			"command": "/usr/local/bin/python3",
+			"args": ["/path/to/rhino-mcp/main.py"]
+		}
+	}
+}
+```
+
+Restart Claude Desktop after saving.
+
+### 3b. Verify MCP Tools Load
+
+In Claude Desktop, you should see Rhino tools available. Ask:
 
 ```
 Get the current scene info from Rhino
 ```
 
-**Expected**: Claude should return details about objects, layers, and units in your Rhino scene.
+**Expected**: Claude calls `get_scene_info` and returns details about objects, layers, and units.
 
----
-
-### 2. Basic Geometry Creation
+### 3c. Test Geometry Creation
 
 ```
 Create a sphere at position (0, 0, 0) with radius 5
@@ -37,377 +125,145 @@ Create a box at position (20, 0, 0) with width 10, depth 10, and height 10
 
 **Expected**: A box appears at x=20.
 
-```
-Create a circle at (0, 20, 0) with radius 7
-```
-
-**Expected**: A circle appears at y=20.
-
----
-
-### 3. Curve Creation
-
-```
-Create a polyline through these points: [0,40,0], [10,40,0], [10,50,0], [0,50,0]
-```
-
-**Expected**: A polyline appears forming an L-shape.
-
-```
-Create an arc at center (20,40,0) with radius 5, starting at 0 degrees and ending at 180 degrees
-```
-
-**Expected**: A semicircular arc appears.
-
-```
-Create an ellipse at center (40,40,0) with x_radius 8 and y_radius 4
-```
-
-**Expected**: An ellipse appears.
-
----
-
-### 4. Transformation Tests
-
-First, select objects for transformation:
+### 3d. Test Transformations
 
 ```
 Select all objects in Rhino
 ```
 
-**Expected**: All objects are selected.
-
-Now test move:
-
 ```
-Move the selected objects by displacement vector (-5, 0, 0)
+Move the selected objects by (0, 10, 0)
 ```
 
-**Expected**: Selected objects move 5 units in negative X direction.
-
-```
-Select all objects again
-```
+**Expected**: Objects shift 10 units in Y.
 
 ```
 Rotate the selected objects around point (0, 0, 0) by 45 degrees
 ```
 
-**Expected**: Objects rotate 45 degrees around the origin.
+**Expected**: Objects rotate 45 degrees around origin.
 
-```
-Select all objects
-```
-
-```
-Scale the selected objects from center point (0, 0, 0) by a factor of 1.5
-```
-
-**Expected**: Objects grow 1.5x larger.
-
-```
-Select the sphere at origin
-```
-
-```
-Copy the selected objects with displacement (15, 0, 0)
-```
-
-**Expected (FAILED - Haven't specify object types clearly yet)**: A copy of the sphere appears 15 units to the right.
-
-```
-Select the box
-```
-
-```
-Create a linear array of the selected objects with displacement (5, 0, 0) and count 3
-```
-
-**Expected**: 2 additional boxes appear, spaced 5 units apart.
-
----
-
-### 5. Boolean Operations
+### 3e. Test Boolean Operations
 
 ```
 Unselect all objects
 ```
 
 ```
-Create a box at (0, 60, 0) with dimensions 10x10x10
+Create a box at (0, 40, 0) with dimensions 10x10x10
 ```
 
 ```
-Create another box at (5, 60, 0) with dimensions 10x10x10
+Create another box at (5, 40, 0) with dimensions 10x10x10
 ```
 
 ```
-Select all objects
+Select all objects and perform a boolean union
 ```
 
-```
-Perform a boolean union on the selected objects
-```
+**Expected**: The two boxes merge into one solid.
 
-**Expected**: The two boxes merge into one object.
-
----
-
-### 6. Curve Operations
-
-```
-Create a circle at (0, 80, 0) with radius 5
-```
-
-```
-Select all objects
-```
-
-```
-Offset the selected curve by distance 2
-```
-
-**Expected**: A larger concentric circle appears.
-
-```
-Unselect all
-```
-
-```
-Create a line from (20, 80, 0) to (30, 80, 0)
-```
-
-```
-Select the line
-```
-
-```
-Extend the curve by extension length 3
-```
-
-**Expected**: The line extends on both ends.
-
----
-
-### 7. Surface Operations
-
-```
-Unselect all objects
-```
-
-```
-Create a circle at (0, 100, 0) with radius 5
-```
-
-```
-Select the circle
-```
-
-```
-Extrude the curve straight up with height 10
-```
-
-**Expected**: A cylinder surface is created.
-
-```
-Unselect all
-```
-
-```
-Create 3 circles: one at (20,100,0) radius 3, one at (20,100,5) radius 5, and one at (20,100,10) radius 3
-```
-
-```
-Select all objects
-```
-
-```
-Create a lofted surface through the selected curves
-```
-
-**Expected**: A smooth surface connects the three circles.
-
----
-
-### 8. Layer Management
+### 3f. Test Layer Management
 
 ```
 Create a new layer named "TestLayer" with color RGB(255, 0, 0)
 ```
 
-**Expected**: A new red layer is created.
-
 ```
 Set the current layer to "TestLayer"
 ```
-
-**Expected**: TestLayer becomes active.
 
 ```
 List all layers in the document
 ```
 
-**Expected**: All layers shown including TestLayer.
+**Expected**: Layers listed including the new red "TestLayer".
 
-```
-Set layer "Default" visibility to false
-```
+### 3g. Test Code Execution
 
-**Expected**: Objects on Default become hidden.
-
-```
-Set layer "Default" visibility to true
-```
-
-**Expected**: Objects on Default become visible again.
-
----
-
-### 9. Object Properties
-
-```
-Create a box at (0, 120, 0) with dimensions 5x5x5
-```
-
-```
-Select the box
-```
-
-```
-Set the object name to "MyBox"
-```
-
-**Expected**: The box is named "MyBox".
-
-```
-Set the object color to RGB(0, 255, 0)
-```
-
-**Expected**: The box turns green.
-
-```
-Move the object to layer "TestLayer"
-```
-
-**Expected**: The box moves to TestLayer.
-
----
-
-### 10. Analysis Tools
-
-```
-Measure the distance between point (0,0,0) and point (10,0,0)
-```
-
-**Expected**: Distance = 10.
-
-```
-Create a line from (0, 140, 0) to (15, 140, 0)
-```
-
-```
-Select the line
-```
-
-```
-Measure the length of the selected curve
-```
-
-**Expected**: Length = 15.
-
-```
-Create a circle at (20, 140, 0) with radius 5
-```
-
-```
-Select the circle
-```
-
-```
-Measure the area of the selected object
-```
-
-**Expected**: Area ≈ 78.54 (π × 5²).
-
-```
-Create a sphere at (40, 140, 0) with radius 5
-```
-
-```
-Select the sphere
-```
-
-```
-Measure the volume of the selected object
-```
-
-**Expected**: Volume ≈ 523.6 (4/3 × π × 5³).
-
----
-
-### 11. Selection Operations
-
-```
-Select all objects of type "curve"
-```
-
-**Expected**: All curves are selected.
-
-```
-Select all objects on layer "TestLayer"
-```
-
-**Expected**: All objects on TestLayer are selected.
-
-```
-Delete the selected objects
-```
-
-**Expected**: TestLayer objects are deleted.
-
-```
-Unselect all objects
-```
-
----
-
-### 12. Mirror Test
-
-```
-Create a sphere at (0, 0, 5) with radius 3
-```
-
-```
-Select the sphere
-```
-
-```
-Mirror the selected objects across a line from (0, 0, 0) to (10, 0, 0)
-```
-
-**Expected**: A mirrored copy appears on the opposite side of the mirror line.
-
----
-
-### 13. Code Execution via Python
 ```
 Create for me a spiral staircase in Rhino
 ```
-**Expected**: Something to be generated on screen
+
+**Expected**: Claude uses `execute_python_code` to write and run a script that generates a spiral staircase.
+
+### 3h. Test Analysis
+
+```
+Create a sphere at origin with radius 5
+Select the sphere
+Measure its volume
+```
+
+**Expected**: Volume approximately 523.6 (4/3 * pi * 5^3).
+
+## Step 4: Manual Socket Test (Optional)
+
+For debugging connection issues, test the socket directly with Python:
+
+```python
+import socket
+import json
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.settimeout(5)
+sock.connect(("localhost", 54321))
+
+command = json.dumps({
+	"type": "get_scene_info",
+	"params": {}
+})
+
+sock.sendall(command.encode("utf-8"))
+response = sock.recv(8192)
+sock.close()
+
+print(json.loads(response.decode("utf-8")))
+```
+
+**Expected**: JSON response with `"status": "success"` and scene data.
 
 ## Troubleshooting
 
-If a command fails:
+### Listener won't start in Rhino 8
 
-1. **Check Rhino listener**: Ensure `rhino_listener.py` is still running in Rhino
-2. **Check selection**: Some operations require objects to be selected first
-3. **Check object types**: Boolean operations require solid objects, not curves
-4. **Review error message**: Claude will explain what went wrong
+- Make sure you're using `_-RunPythonScript` (with underscores and dash)
+- Verify Rhino 8 is using CPython 3 (default for new scripts)
+- If using the legacy IronPython editor, switch to the new ScriptEditor
+
+### Port already in use
+
+```bash
+lsof -i :54321
+```
+
+Kill the process using that port, or restart Rhino.
+
+### MCP server not loading in Claude
+
+- Check Claude logs: `~/Library/Logs/Claude/`
+- Verify Python path: `which python3`
+- Test MCP server directly: `python3 main.py` (should start without errors)
+- Ensure `mcp` and `fastmcp` are installed: `pip3 list | grep -i mcp`
+
+### Commands time out
+
+- Rhino may be busy with a long operation
+- The default socket timeout is 10 seconds
+- Complex boolean or loft operations can take time
+- Add delays between rapid-fire commands
 
 ## Success Criteria
 
-All commands should:
-- Execute without errors
-- Create/modify geometry as described
-- Return success messages with relevant details
-- Show immediate visual feedback in Rhino
+All of the following should work:
+
+- [ ] Listener starts in Rhino 8 without errors
+- [ ] `python3 test.py` passes all 51 tests
+- [ ] Claude Desktop shows Rhino tools
+- [ ] `get_scene_info` returns scene data via Claude
+- [ ] Geometry creation works (box, sphere, circle)
+- [ ] Transformations work (move, rotate, scale)
+- [ ] Boolean operations work (union, difference)
+- [ ] Layer management works (create, list)
+- [ ] Code execution works (parametric scripts)
+- [ ] Analysis tools work (distance, area, volume)

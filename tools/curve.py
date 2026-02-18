@@ -17,9 +17,9 @@ def register_tools(mcp):
 		try:
 			result = send_to_rhino("join_curves")
 			count = result.get("count", 0)
-			return "Joined curves into {0} result(s)".format(count)
+			return f"Joined curves into {count} result(s)"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def explode_curves() -> str:
@@ -31,9 +31,9 @@ def register_tools(mcp):
 		try:
 			result = send_to_rhino("explode_curves")
 			count = result.get("count", 0)
-			return "Exploded curves into {0} segments".format(count)
+			return f"Exploded curves into {count} segments"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def offset_curve(distance: float) -> str:
@@ -43,12 +43,11 @@ def register_tools(mcp):
 		Curves must be selected in Rhino first
 		"""
 		try:
-			params = {"distance": distance}
-			result = send_to_rhino("offset_curve", params)
+			result = send_to_rhino("offset_curve", {"distance": distance})
 			count = result.get("count", 0)
-			return "Offset {0} curves by distance {1}".format(count, distance)
+			return f"Offset {count} curves by distance {distance}"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def fillet_curves(radius: float) -> str:
@@ -58,11 +57,10 @@ def register_tools(mcp):
 		Exactly 2 curves must be selected in Rhino first
 		"""
 		try:
-			params = {"radius": radius}
-			result = send_to_rhino("fillet_curves", params)
-			return "Created fillet with radius {0}".format(radius)
+			send_to_rhino("fillet_curves", {"radius": radius})
+			return f"Created fillet with radius {radius}"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def extend_curve(extension: float) -> str:
@@ -72,8 +70,7 @@ def register_tools(mcp):
 		Curves must be selected in Rhino first
 		"""
 		try:
-			params = {"extension": extension}
-			result = send_to_rhino("extend_curve", params)
-			return "Extended curve by {0}".format(extension)
+			send_to_rhino("extend_curve", {"extension": extension})
+			return f"Extended curve by {extension}"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"

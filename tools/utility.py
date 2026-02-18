@@ -23,9 +23,9 @@ def register_tools(mcp):
 			}
 			result = send_to_rhino("measure_distance", params)
 			distance = result.get("distance", 0)
-			return "Distance: {0}".format(distance)
+			return f"Distance: {distance}"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def measure_curve_length() -> str:
@@ -36,9 +36,9 @@ def register_tools(mcp):
 		try:
 			result = send_to_rhino("measure_curve_length")
 			length = result.get("length", 0)
-			return "Curve length: {0}".format(length)
+			return f"Curve length: {length}"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def measure_area() -> str:
@@ -49,9 +49,9 @@ def register_tools(mcp):
 		try:
 			result = send_to_rhino("measure_area")
 			area = result.get("area", 0)
-			return "Area: {0}".format(area)
+			return f"Area: {area}"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def measure_volume() -> str:
@@ -62,9 +62,9 @@ def register_tools(mcp):
 		try:
 			result = send_to_rhino("measure_volume")
 			volume = result.get("volume", 0)
-			return "Volume: {0}".format(volume)
+			return f"Volume: {volume}"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def execute_python_code(code: str) -> str:
@@ -88,7 +88,7 @@ def register_tools(mcp):
 			message = result.get("message", "Code executed")
 			output = result.get("output", "")
 			if output:
-				return "{0}\nOutput: {1}".format(message, output)
+				return f"{message}\nOutput: {output}"
 			return message
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"

@@ -2,12 +2,14 @@
 High-level command wrappers for Rhino operations
 These functions accept params dict and handle common patterns like
 working with selected objects, parameter extraction, etc.
+Compatible with CPython 3 (Rhino 8)
 """
 
 import math
 import rhinoscriptsyntax as rs
 import Rhino
 import System
+from io import StringIO
 
 from . import curve, surface, geometry, layer, object as obj, selection, utility, plane, document
 
@@ -200,18 +202,11 @@ def rotate_objects(params):
 	if not objects:
 		return {"status": "error", "message": "No objects selected"}
 
-	result_holder = [None]
-
-	def do_rotate():
-		result_holder[0] = rs.RotateObjects(objects, center, angle, axis)
-		if result_holder[0]:
-			document.redraw()
-
-	# Execute on UI thread to avoid macOS threading issues
-	Rhino.RhinoApp.InvokeOnUiThread(System.Action(do_rotate))
-
-	if result_holder[0]:
-		return {"status": "success", "result": {"count": len(result_holder[0])}}
+	# Already runs on UI thread via server.py InvokeOnUiThread dispatch
+	result = rs.RotateObjects(objects, center, angle, axis)
+	if result:
+		document.redraw()
+		return {"status": "success", "result": {"count": len(result)}}
 
 	return {"status": "error", "message": "Failed to rotate objects"}
 
@@ -818,11 +813,10 @@ def execute_python_code(params):
 
 	try:
 		import sys
-		import StringIO
 
 		# Capture stdout
 		old_stdout = sys.stdout
-		sys.stdout = StringIO.StringIO()
+		sys.stdout = StringIO()
 
 		# Create namespace with rhinoscriptsyntax and common modules
 		namespace = {

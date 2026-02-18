@@ -17,10 +17,10 @@ def register_tools(mcp):
 		z: Z coordinate (default 0)
 		"""
 		try:
-			result = send_to_rhino("create_point", {"x": x, "y": y, "z": z})
-			return "Created point at ({0}, {1}, {2})".format(x, y, z)
+			send_to_rhino("create_point", {"x": x, "y": y, "z": z})
+			return f"Created point at ({x}, {y}, {z})"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def create_line(start_x: float, start_y: float, start_z: float,
@@ -35,11 +35,10 @@ def register_tools(mcp):
 				"start": [start_x, start_y, start_z],
 				"end": [end_x, end_y, end_z]
 			}
-			result = send_to_rhino("create_line", params)
-			return "Created line from ({0}, {1}, {2}) to ({3}, {4}, {5})".format(
-				start_x, start_y, start_z, end_x, end_y, end_z)
+			send_to_rhino("create_line", params)
+			return f"Created line from ({start_x}, {start_y}, {start_z}) to ({end_x}, {end_y}, {end_z})"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def create_circle(center_x: float, center_y: float, center_z: float, radius: float) -> str:
@@ -53,11 +52,10 @@ def register_tools(mcp):
 				"center": [center_x, center_y, center_z],
 				"radius": radius
 			}
-			result = send_to_rhino("create_circle", params)
-			return "Created circle with radius {0} at ({1}, {2}, {3})".format(
-				radius, center_x, center_y, center_z)
+			send_to_rhino("create_circle", params)
+			return f"Created circle with radius {radius} at ({center_x}, {center_y}, {center_z})"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def create_arc(center_x: float, center_y: float, center_z: float,
@@ -76,11 +74,10 @@ def register_tools(mcp):
 				"start_angle": start_angle,
 				"end_angle": end_angle
 			}
-			result = send_to_rhino("create_arc", params)
-			return "Created arc with radius {0} from {1} to {2} degrees".format(
-				radius, start_angle, end_angle)
+			send_to_rhino("create_arc", params)
+			return f"Created arc with radius {radius} from {start_angle} to {end_angle} degrees"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def create_ellipse(center_x: float, center_y: float, center_z: float,
@@ -97,10 +94,10 @@ def register_tools(mcp):
 				"x_radius": x_radius,
 				"y_radius": y_radius
 			}
-			result = send_to_rhino("create_ellipse", params)
-			return "Created ellipse with radii {0}x{1}".format(x_radius, y_radius)
+			send_to_rhino("create_ellipse", params)
+			return f"Created ellipse with radii {x_radius}x{y_radius}"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def create_polyline(points: list[list[float]]) -> str:
@@ -110,10 +107,10 @@ def register_tools(mcp):
 		Example: [[0,0,0], [10,0,0], [10,10,0], [0,10,0]]
 		"""
 		try:
-			result = send_to_rhino("create_polyline", {"points": points})
-			return "Created polyline with {0} points".format(len(points))
+			send_to_rhino("create_polyline", {"points": points})
+			return f"Created polyline with {len(points)} points"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
 
 	@mcp.tool()
 	def create_curve(points: list[list[float]], degree: int = 3) -> str:
@@ -123,7 +120,7 @@ def register_tools(mcp):
 		degree: Curve degree (3 for cubic, higher for smoother)
 		"""
 		try:
-			result = send_to_rhino("create_curve", {"points": points, "degree": degree})
-			return "Created curve with {0} points, degree {1}".format(len(points), degree)
+			send_to_rhino("create_curve", {"points": points, "degree": degree})
+			return f"Created curve with {len(points)} points, degree {degree}"
 		except Exception as e:
-			return "Error: {0}".format(str(e))
+			return f"Error: {e}"
