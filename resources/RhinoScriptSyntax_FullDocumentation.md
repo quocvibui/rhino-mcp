@@ -1539,7 +1539,7 @@ none
 ```python
 import rhinoscriptsyntax as rs
 rs.SendKeystroke( "Hello Rhino!" )
-rs.SendKeystrokes( 25/4 )
+rs.SendKeystrokes( 25//4 )
 ```
 
 ### See Also
