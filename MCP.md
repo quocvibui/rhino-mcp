@@ -30,7 +30,7 @@ RhinoMCP Listener
 ============================================================
 Starting background listener thread...
 Listener started successfully
-50 commands ready
+135 commands ready
 ============================================================
 ```
 

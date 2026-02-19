@@ -4,10 +4,10 @@ AI-powered 3D modeling in Rhino 8 through Model Context Protocol.
 
 ## Overview
 
-MCP server with 50 tools for code execution, geometry creation, transformation, boolean operations, curve/surface manipulation, layer management, and analysis in Rhino 8.
+MCP server with 135 tools for code execution, geometry creation, surface/curve/mesh operations, transformations, booleans, layer/material/group/block management, views, annotations, and analysis in Rhino 8.
 
 **Key Features:**
-- 50 comprehensive 3D modeling tools
+- 135 comprehensive 3D modeling tools
 - Safe JSON protocol over TCP sockets
 - Modular architecture for easy expansion
 - CPython 3 compatible (Rhino 8)
@@ -35,7 +35,7 @@ RhinoMCP Listener
 ============================================================
 Starting background listener thread...
 Listener started successfully
-50 commands ready
+135 commands ready
 ============================================================
 ```
 
@@ -82,7 +82,7 @@ If you have problems with debugging, search up: "https://developer.rhino3d.com/a
          │ MCP Protocol
          ▼
 ┌─────────────────┐
-│    main.py      │ FastMCP server with 50 tools
+│    main.py      │ FastMCP server with 135 tools
 │    tools/       │ Modular tool definitions
 └────────┬────────┘
          │ JSON over TCP (localhost:54321)
@@ -98,7 +98,7 @@ If you have problems with debugging, search up: "https://developer.rhino3d.com/a
 
 **Three Layers:**
 
-1. **MCP Layer** (`main.py`, `tools/`) - Python 3.10+, exposes 50 tools to Claude
+1. **MCP Layer** (`main.py`, `tools/`) - Python 3.10+, exposes 135 tools to Claude
 2. **Socket Server** (`server.py`) - CPython 3, runs inside Rhino 8
 3. **Rhino Modules** (`rhino/`) - Organized by API category
 
@@ -108,28 +108,42 @@ If you have problems with debugging, search up: "https://developer.rhino3d.com/a
 rhino-mcp/
 ├── main.py                    # MCP server entry point
 ├── server.py                  # Rhino socket server
-├── test.py                    # Test suite (51 tests)
-├── tools/                     # MCP tool definitions
+├── test.py                    # Test suite (185 tests)
+├── tools/                     # MCP tool definitions (16 modules)
 │   ├── utils.py               # Shared socket communication
 │   ├── geometry.py            # Geometry creation tools
 │   ├── surface.py             # Surface/solid tools
 │   ├── curve.py               # Curve tools
+│   ├── mesh.py                # Mesh tools
 │   ├── transformation.py      # Transform tools
 │   ├── layer.py               # Layer management tools
 │   ├── object.py              # Object property tools
 │   ├── selection.py           # Selection tools
 │   ├── document.py            # Document/scene tools
+│   ├── group.py               # Group tools
+│   ├── view.py                # View/camera tools
+│   ├── block.py               # Block instance tools
+│   ├── material.py            # Material tools
+│   ├── annotation.py          # Annotation tools
+│   ├── userdata.py            # User data tools
 │   └── utility.py             # Measurement + code execution
-├── rhino/                     # RhinoScriptSyntax wrappers
-│   ├── commands.py            # High-level command routing (50 commands)
+├── rhino/                     # RhinoScriptSyntax wrappers (16 modules)
+│   ├── commands.py            # High-level command routing (135 commands)
 │   ├── curve.py               # Curve functions
 │   ├── surface.py             # Surface functions
+│   ├── mesh.py                # Mesh functions
 │   ├── object.py              # Object manipulation
 │   ├── selection.py           # Selection functions
 │   ├── layer.py               # Layer functions
 │   ├── geometry.py            # Geometry functions
 │   ├── plane.py               # Plane functions
 │   ├── document.py            # Document functions
+│   ├── group.py               # Group functions
+│   ├── view.py                # View/camera functions
+│   ├── block.py               # Block functions
+│   ├── material.py            # Material functions
+│   ├── annotation.py          # Annotation functions
+│   ├── userdata.py            # User data functions
 │   └── utility.py             # Utility functions
 ├── script/                    # Example scripts
 │   ├── linear_array.py
@@ -163,6 +177,18 @@ Set current layer to "Walls"
 Measure the distance between (0,0,0) and (10,0,0)
 Select the circle and measure its area
 
+# Mesh
+Create a mesh from selected surfaces
+Boolean union the selected meshes
+
+# Views
+Set display mode to Wireframe
+Zoom to fit all objects
+
+# Materials
+Add a red material to the selected object
+Set material transparency to 50%
+
 # Code Execution
 Create for me a spiral staircase in Rhino
 ```
@@ -174,7 +200,7 @@ Run comprehensive test suite:
 python3 test.py
 ```
 
-Tests all 50 commands plus error handling (51 tests total). See [TESTING.md](TESTING.md) for details.
+Tests all 135 commands plus error handling (185 tests total). See [TESTING.md](TESTING.md) for details.
 
 ## Troubleshooting
 
@@ -207,7 +233,7 @@ Tests all 50 commands plus error handling (51 tests total). See [TESTING.md](TES
 - Rhino 8 for macOS
 - Python 3.10+
 
-All 51 tests pass. Community contributions for other platforms welcome.
+All 185 tests pass. Community contributions for other platforms welcome.
 
 **Note:** All commands are dispatched to Rhino's UI thread to prevent macOS threading crashes.
 

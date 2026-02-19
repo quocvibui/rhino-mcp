@@ -70,3 +70,41 @@ def register_tools(mcp):
 			return f"Deleted {deleted} objects"
 		except Exception as e:
 			return f"Error: {e}"
+
+	@mcp.tool()
+	def select_by_name(name: str) -> str:
+		"""
+		Select objects by their name
+		name: Object name to search for
+		"""
+		try:
+			result = send_to_rhino("select_by_name", {"name": name})
+			count = result.get("count", 0)
+			return f"Selected {count} objects named '{name}'"
+		except Exception as e:
+			return f"Error: {e}"
+
+	@mcp.tool()
+	def last_created_objects() -> str:
+		"""
+		Select the last created objects
+		"""
+		try:
+			import json
+			result = send_to_rhino("last_created_objects")
+			count = result.get("count", 0)
+			return f"Selected {count} last created objects"
+		except Exception as e:
+			return f"Error: {e}"
+
+	@mcp.tool()
+	def invert_selection() -> str:
+		"""
+		Invert the current selection (select unselected, deselect selected)
+		"""
+		try:
+			result = send_to_rhino("invert_selection")
+			count = result.get("count", 0)
+			return f"Inverted selection, {count} objects now selected"
+		except Exception as e:
+			return f"Error: {e}"

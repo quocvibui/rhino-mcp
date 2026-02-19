@@ -12,6 +12,7 @@ import System
 from io import StringIO
 
 from . import curve, surface, geometry, layer, object as obj, selection, utility, plane, document
+from . import mesh, group, view, block, material, annotation, userdata
 
 
 # ============================================================================
@@ -426,12 +427,14 @@ def fillet_curves(params):
 	if not objects:
 		return {"status": "error", "message": "No objects selected"}
 
-	curves = [o for o in objects if curve.is_curve(o)]
-	if len(curves) < 2:
+	curves_list = [o for o in objects if curve.is_curve(o)]
+	if len(curves_list) < 2:
 		return {"status": "error", "message": "Need 2 curves selected"}
 
-	# Fillet not directly available in our wrapper, placeholder
-	return {"status": "success", "result": {"created": False, "message": "FilletCurves not yet implemented"}}
+	result = curve.add_fillet_curve(curves_list[0], curves_list[1], radius)
+	if result["status"] == "success":
+		return {"status": "success", "result": {"id": result["id"]}}
+	return result
 
 
 def extend_curve(params):
@@ -798,6 +801,937 @@ def set_object_layer(params):
 		obj.object_layer(obj_id, layer_name)
 
 	return {"status": "success", "result": {"count": len(objects)}}
+
+
+# ============================================================================
+# NEW SURFACE OPERATIONS (Phase 1)
+# ============================================================================
+
+def create_pipe(params):
+	"""Create a pipe along a curve"""
+	curve_id = params.get("curve_id")
+	radius = params.get("radius", 1)
+	cap = params.get("cap", 1)
+	result = surface.add_pipe(curve_id, [0, 1], [radius, radius], cap)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def sweep1(params):
+	"""Sweep shapes along one rail"""
+	rail = params.get("rail")
+	shapes = params.get("shapes", [])
+	result = surface.add_sweep1(rail, shapes)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def sweep2(params):
+	"""Sweep shapes along two rails"""
+	rails = params.get("rails", [])
+	shapes = params.get("shapes", [])
+	result = surface.add_sweep2(rails, shapes)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def create_planar_surface(params):
+	"""Create planar surface from curves"""
+	curve_ids = params.get("curve_ids", [])
+	result = surface.add_planar_srf(curve_ids)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def create_edge_surface(params):
+	"""Create edge surface"""
+	curve_ids = params.get("curve_ids", [])
+	result = surface.add_edge_srf(curve_ids)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def create_network_surface(params):
+	"""Create network surface"""
+	curve_ids = params.get("curve_ids", [])
+	continuity = params.get("continuity", 1)
+	result = surface.add_network_srf(curve_ids, continuity)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def create_patch(params):
+	"""Create patch surface"""
+	object_ids = params.get("object_ids", [])
+	uspan = params.get("uspan", 10)
+	vspan = params.get("vspan", 10)
+	result = surface.add_patch(object_ids, uspan, vspan)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def offset_surface(params):
+	"""Offset a surface"""
+	surface_id = params.get("surface_id")
+	distance = params.get("distance", 1)
+	result = surface.offset_surface(surface_id, distance)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def split_brep(params):
+	"""Split a brep"""
+	brep_id = params.get("brep_id")
+	cutter_id = params.get("cutter_id")
+	result = surface.split_brep(brep_id, cutter_id)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def fillet_surfaces(params):
+	"""Fillet between two surfaces"""
+	srf1 = params.get("surface1_id")
+	srf2 = params.get("surface2_id")
+	radius = params.get("radius", 1)
+	result = surface.fillet_surfaces(srf1, srf2, radius)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def cap_planar_holes(params):
+	"""Cap planar holes"""
+	brep_id = params.get("brep_id")
+	result = surface.cap_planar_holes(brep_id)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def extrude_curve_along_curve(params):
+	"""Extrude curve along another curve"""
+	curve_id = params.get("curve_id")
+	path_id = params.get("path_id")
+	result = surface.extrude_curve_along_curve(curve_id, path_id)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def extrude_curve_to_point(params):
+	"""Extrude curve to a point"""
+	curve_id = params.get("curve_id")
+	point = params.get("point", [0, 0, 10])
+	result = surface.extrude_curve_to_point(curve_id, point)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def duplicate_edge_curves(params):
+	"""Duplicate edge curves of a brep"""
+	brep_id = params.get("brep_id")
+	result = surface.duplicate_edge_curves(brep_id)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def duplicate_surface_border(params):
+	"""Duplicate surface border"""
+	surface_id = params.get("surface_id")
+	result = surface.duplicate_surface_border(surface_id)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def join_surfaces(params):
+	"""Join surfaces"""
+	surface_ids = params.get("surface_ids", [])
+	result = surface.join_surfaces(surface_ids)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def explode_polysurfaces(params):
+	"""Explode polysurfaces"""
+	brep_id = params.get("brep_id")
+	result = surface.explode_polysurfaces(brep_id)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def unroll_surface(params):
+	"""Unroll a surface"""
+	surface_id = params.get("surface_id")
+	result = surface.unroll_surface(surface_id)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+# ============================================================================
+# NEW CURVE OPERATIONS (Phase 1)
+# ============================================================================
+
+def create_rectangle(params):
+	"""Create a rectangle"""
+	center = params.get("center", [0, 0, 0])
+	width = params.get("width", 10)
+	height = params.get("height", 10)
+	p = plane.plane_from_normal(center, (0, 0, 1))
+	result = curve.add_rectangle(p, width, height)
+	if result["status"] == "success":
+		return {"status": "success", "result": {"id": result["id"], "type": "rectangle"}}
+	return result
+
+
+def create_spiral(params):
+	"""Create a spiral"""
+	point0 = params.get("point0", [0, 0, 0])
+	point1 = params.get("point1", [0, 0, 10])
+	pitch = params.get("pitch", 1)
+	turns = params.get("turns", 5)
+	radius0 = params.get("radius0", 5)
+	radius1 = params.get("radius1", 5)
+	result = curve.add_spiral(point0, point1, pitch, turns, radius0, radius1)
+	if result["status"] == "success":
+		return {"status": "success", "result": {"id": result["id"], "type": "spiral"}}
+	return result
+
+
+def create_nurbs_curve(params):
+	"""Create a NURBS curve"""
+	points = params.get("points", [])
+	degree = params.get("degree", 3)
+	points_tuple = [tuple(pt) for pt in points]
+	# Generate uniform knot vector
+	n = len(points_tuple)
+	knot_count = n + degree - 1
+	knots = [i for i in range(knot_count)]
+	result = curve.add_nurbs_curve(points_tuple, knots, degree)
+	if result["status"] == "success":
+		return {"status": "success", "result": {"id": result["id"], "type": "nurbs_curve"}}
+	return result
+
+
+def create_blend_curve(params):
+	"""Create a blend curve"""
+	curve1 = params.get("curve1")
+	curve2 = params.get("curve2")
+	continuity = params.get("continuity", 1)
+	result = curve.add_blend_curve(
+		[curve1, curve2],
+		[rs.CurveDomain(curve1)[1], rs.CurveDomain(curve2)[0]],
+		[False, True],
+		[continuity, continuity]
+	)
+	if result["status"] == "success":
+		return {"status": "success", "result": {"id": result["id"], "type": "blend_curve"}}
+	return result
+
+
+def divide_curve_cmd(params):
+	"""Divide a curve into segments"""
+	curve_id = params.get("curve_id")
+	segments = params.get("segments", 10)
+	create_points = params.get("create_points", True)
+	result = curve.divide_curve(curve_id, segments, create_points)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def divide_curve_length_cmd(params):
+	"""Divide curve by length"""
+	curve_id = params.get("curve_id")
+	length = params.get("length", 1)
+	create_points = params.get("create_points", True)
+	result = curve.divide_curve_length(curve_id, length, create_points)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def split_curve(params):
+	"""Split a curve at parameters"""
+	curve_id = params.get("curve_id")
+	parameters = params.get("parameters", [])
+	result = curve.split_curve(curve_id, parameters)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def close_curve(params):
+	"""Close an open curve"""
+	curve_id = params.get("curve_id")
+	result = curve.close_curve(curve_id)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def reverse_curve(params):
+	"""Reverse curve direction"""
+	curve_id = params.get("curve_id")
+	result = curve.reverse_curve(curve_id)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def rebuild_curve(params):
+	"""Rebuild a curve"""
+	curve_id = params.get("curve_id")
+	degree = params.get("degree", 3)
+	point_count = params.get("point_count", 10)
+	result = curve.rebuild_curve(curve_id, degree, point_count)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def project_curve_to_surface(params):
+	"""Project curves onto surfaces"""
+	curve_ids = params.get("curve_ids", [])
+	surface_ids = params.get("surface_ids", [])
+	direction = params.get("direction", [0, 0, -1])
+	result = curve.project_curve_to_surface(curve_ids, surface_ids, direction)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+# ============================================================================
+# CURVE ANALYSIS (Phase 5)
+# ============================================================================
+
+def curve_closest_point(params):
+	"""Find closest point on curve"""
+	curve_id = params.get("curve_id")
+	point = params.get("point", [0, 0, 0])
+	result = curve.curve_closest_point(curve_id, point)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def evaluate_curve(params):
+	"""Evaluate curve at parameter"""
+	curve_id = params.get("curve_id")
+	parameter = params.get("parameter", 0)
+	result = curve.evaluate_curve(curve_id, parameter)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def curve_start_end_points(params):
+	"""Get curve start/end points"""
+	curve_id = params.get("curve_id")
+	result = curve.curve_start_end_points(curve_id)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def curve_curve_intersection(params):
+	"""Find curve-curve intersections"""
+	curve1 = params.get("curve1")
+	curve2 = params.get("curve2")
+	result = curve.curve_curve_intersection(curve1, curve2)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+# ============================================================================
+# MESH OPERATIONS (Phase 2)
+# ============================================================================
+
+def create_mesh(params):
+	"""Create a mesh"""
+	vertices = params.get("vertices", [])
+	faces = params.get("faces", [])
+	result = mesh.add_mesh(vertices, faces)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def create_planar_mesh(params):
+	"""Create a planar mesh from a closed curve"""
+	curve_id = params.get("curve_id")
+	result = mesh.add_planar_mesh(curve_id)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def mesh_from_surface(params):
+	"""Mesh brep/surface objects"""
+	object_ids = params.get("object_ids", [])
+	result = mesh.mesh_objects(object_ids)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def mesh_boolean_union(params):
+	"""Mesh boolean union"""
+	mesh_ids = params.get("mesh_ids", [])
+	result = mesh.mesh_boolean_union(mesh_ids)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def mesh_boolean_difference(params):
+	"""Mesh boolean difference"""
+	input_ids = params.get("input_ids", [])
+	subtract_ids = params.get("subtract_ids", [])
+	result = mesh.mesh_boolean_difference(input_ids, subtract_ids)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def mesh_boolean_intersection(params):
+	"""Mesh boolean intersection"""
+	mesh_ids1 = params.get("mesh_ids1", [])
+	mesh_ids2 = params.get("mesh_ids2", [])
+	result = mesh.mesh_boolean_intersection(mesh_ids1, mesh_ids2)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def join_meshes(params):
+	"""Join meshes"""
+	mesh_ids = params.get("mesh_ids", [])
+	result = mesh.join_meshes(mesh_ids)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def mesh_to_nurb(params):
+	"""Convert mesh to NURBS"""
+	mesh_id = params.get("mesh_id")
+	result = mesh.mesh_to_nurb(mesh_id)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def mesh_offset(params):
+	"""Offset a mesh"""
+	mesh_id = params.get("mesh_id")
+	distance = params.get("distance", 1)
+	result = mesh.mesh_offset(mesh_id, distance)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+# ============================================================================
+# GROUP OPERATIONS (Phase 2)
+# ============================================================================
+
+def create_group(params):
+	"""Create a group"""
+	name = params.get("name")
+	object_ids = params.get("object_ids", [])
+	result = group.add_group(name)
+	if result["status"] == "success" and object_ids:
+		group.add_objects_to_group(object_ids, result["name"])
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def delete_group(params):
+	"""Delete a group"""
+	name = params.get("name")
+	result = group.delete_group(name)
+	if result["status"] == "success":
+		return {"status": "success", "result": {"deleted": name}}
+	return result
+
+
+def add_to_group(params):
+	"""Add objects to a group"""
+	name = params.get("name")
+	object_ids = params.get("object_ids", [])
+	result = group.add_objects_to_group(object_ids, name)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def remove_from_group(params):
+	"""Remove objects from a group"""
+	name = params.get("name")
+	object_ids = params.get("object_ids", [])
+	result = group.remove_objects_from_group(object_ids, name)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def list_groups(params):
+	"""List all groups"""
+	result = group.group_names()
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def select_by_group(params):
+	"""Select objects by group"""
+	name = params.get("name")
+	result = group.objects_by_group(name)
+	if result["status"] == "success" and result["ids"]:
+		selection.select_objects(result["ids"])
+	return {"status": "success", "result": result}
+
+
+# ============================================================================
+# VIEW OPERATIONS (Phase 3)
+# ============================================================================
+
+def set_view_camera(params):
+	"""Set view camera"""
+	camera = params.get("camera", [0, 0, 50])
+	target = params.get("target", [0, 0, 0])
+	result = view.set_view_camera(camera, target)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def zoom_extents(params):
+	"""Zoom to extents"""
+	result = view.zoom_extents()
+	return {"status": "success", "result": result}
+
+
+def zoom_selected(params):
+	"""Zoom to selected"""
+	result = view.zoom_selected()
+	return {"status": "success", "result": result}
+
+
+def get_view_info(params):
+	"""Get view info"""
+	result = view.get_view_info()
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def set_display_mode(params):
+	"""Set display mode"""
+	mode = params.get("mode", "Shaded")
+	result = view.set_display_mode(mode)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def add_named_view(params):
+	"""Add a named view"""
+	name = params.get("name")
+	result = view.add_named_view(name)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def restore_named_view(params):
+	"""Restore a named view"""
+	name = params.get("name")
+	result = view.restore_named_view(name)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+# ============================================================================
+# BLOCK OPERATIONS (Phase 3)
+# ============================================================================
+
+def create_block(params):
+	"""Create a block definition"""
+	object_ids = params.get("object_ids", [])
+	base_point = params.get("base_point", [0, 0, 0])
+	name = params.get("name")
+	result = block.add_block(object_ids, base_point, name)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def insert_block(params):
+	"""Insert a block instance"""
+	name = params.get("name")
+	point = params.get("point", [0, 0, 0])
+	scale = params.get("scale", [1, 1, 1])
+	rotation = params.get("rotation", 0)
+	result = block.insert_block(name, point, tuple(scale), rotation)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def explode_block(params):
+	"""Explode a block instance"""
+	block_id = params.get("block_id")
+	result = block.explode_block_instance(block_id)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def delete_block(params):
+	"""Delete a block definition"""
+	name = params.get("name")
+	result = block.delete_block(name)
+	if result["status"] == "success":
+		return {"status": "success", "result": {"deleted": name}}
+	return result
+
+
+def list_blocks(params):
+	"""List block definitions"""
+	result = block.block_names()
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+# ============================================================================
+# MATERIAL OPERATIONS (Phase 3)
+# ============================================================================
+
+def add_material_to_object(params):
+	"""Add material to object"""
+	object_id = params.get("object_id")
+	color = params.get("color", [255, 255, 255])
+	result = material.add_material_to_object(object_id)
+	if result["status"] == "success":
+		material.material_color(result["index"], color)
+		return {"status": "success", "result": {"index": result["index"]}}
+	return result
+
+
+def add_material_to_layer(params):
+	"""Add material to layer"""
+	layer_name = params.get("layer_name")
+	result = material.add_material_to_layer(layer_name)
+	if result["status"] == "success":
+		return {"status": "success", "result": {"index": result["index"]}}
+	return result
+
+
+def set_material_color(params):
+	"""Set material color"""
+	object_id = params.get("object_id")
+	color = params.get("color", [255, 255, 255])
+	index = rs.ObjectMaterialIndex(object_id)
+	if index < 0:
+		return {"status": "error", "message": "Object has no material. Add one first."}
+	result = material.material_color(index, color)
+	return {"status": "success", "result": result}
+
+
+def set_material_transparency(params):
+	"""Set material transparency"""
+	object_id = params.get("object_id")
+	transparency = params.get("transparency", 0)
+	index = rs.ObjectMaterialIndex(object_id)
+	if index < 0:
+		return {"status": "error", "message": "Object has no material. Add one first."}
+	result = material.material_transparency(index, transparency)
+	return {"status": "success", "result": result}
+
+
+def set_material_shine(params):
+	"""Set material shine"""
+	object_id = params.get("object_id")
+	shine = params.get("shine", 0)
+	index = rs.ObjectMaterialIndex(object_id)
+	if index < 0:
+		return {"status": "error", "message": "Object has no material. Add one first."}
+	result = material.material_shine(index, shine)
+	return {"status": "success", "result": result}
+
+
+# ============================================================================
+# OBJECT OPERATIONS (Phase 4)
+# ============================================================================
+
+def hide_objects(params):
+	"""Hide selected objects"""
+	objects = selection.selected_objects()
+	if not objects:
+		return {"status": "error", "message": "No objects selected"}
+	result = obj.hide_objects(objects)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def show_objects(params):
+	"""Show hidden objects"""
+	object_ids = params.get("object_ids", [])
+	if object_ids:
+		result = obj.show_objects(object_ids)
+	else:
+		# Show all hidden objects
+		hidden = rs.HiddenObjects()
+		if hidden:
+			result = obj.show_objects(hidden)
+		else:
+			return {"status": "success", "result": {"count": 0}}
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def lock_objects(params):
+	"""Lock selected objects"""
+	objects = selection.selected_objects()
+	if not objects:
+		return {"status": "error", "message": "No objects selected"}
+	result = obj.lock_objects(objects)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def unlock_objects(params):
+	"""Unlock locked objects"""
+	object_ids = params.get("object_ids", [])
+	if object_ids:
+		result = obj.unlock_objects(object_ids)
+	else:
+		locked = rs.LockedObjects()
+		if locked:
+			result = obj.unlock_objects(locked)
+		else:
+			return {"status": "success", "result": {"count": 0}}
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def is_object_solid(params):
+	"""Check if object is solid"""
+	object_id = params.get("object_id")
+	result = obj.is_object_solid(object_id)
+	return {"status": "success", "result": result}
+
+
+# ============================================================================
+# SELECTION OPERATIONS (Phase 4)
+# ============================================================================
+
+def select_by_name(params):
+	"""Select objects by name"""
+	name = params.get("name", "")
+	objects = selection.objects_by_name(name)
+	if objects:
+		selection.select_objects(objects)
+		return {"status": "success", "result": {"count": len(objects)}}
+	return {"status": "success", "result": {"count": 0}}
+
+
+def last_created_objects(params):
+	"""Select last created objects"""
+	objects = selection.last_created_objects(select=True)
+	return {"status": "success", "result": {"count": len(objects), "ids": objects}}
+
+
+def invert_selection(params):
+	"""Invert selection"""
+	count = selection.invert_selected_objects()
+	return {"status": "success", "result": {"count": count}}
+
+
+# ============================================================================
+# DOCUMENT OPERATIONS (Phase 4)
+# ============================================================================
+
+def get_document_info(params):
+	"""Get document info"""
+	return {
+		"status": "success",
+		"result": {
+			"name": document.document_name(),
+			"path": document.document_path(),
+			"units": document.unit_system_name(),
+			"unit_system": document.unit_system()
+		}
+	}
+
+
+def set_unit_system(params):
+	"""Set unit system"""
+	system = params.get("system", 4)
+	document.unit_system(system)
+	return {"status": "success", "result": {"system": system}}
+
+
+def enable_redraw(params):
+	"""Enable/disable redraw"""
+	enable = params.get("enable", True)
+	document.enable_redraw(enable)
+	return {"status": "success", "result": {"enabled": enable}}
+
+
+# ============================================================================
+# TRANSFORM OPERATIONS (Phase 4)
+# ============================================================================
+
+def array_polar(params):
+	"""Create polar array"""
+	center = params.get("center", [0, 0, 0])
+	count = params.get("count", 6)
+	total_angle = params.get("angle", 360)
+
+	objects = selection.selected_objects()
+	if not objects:
+		return {"status": "error", "message": "No objects selected"}
+
+	angle_step = total_angle / count
+	total_created = 0
+
+	for obj_id in objects:
+		for i in range(1, count):
+			new_id = rs.CopyObject(obj_id)
+			if new_id:
+				rs.RotateObject(new_id, center, angle_step * i)
+				total_created += 1
+
+	document.redraw()
+	return {"status": "success", "result": {"created": total_created}}
+
+
+def orient_objects(params):
+	"""Orient objects from reference to target (translation)"""
+	reference = params.get("reference", [0, 0, 0])
+	target = params.get("target", [10, 0, 0])
+
+	objects = selection.selected_objects()
+	if not objects:
+		return {"status": "error", "message": "No objects selected"}
+
+	# rs.OrientObject needs at least 2 reference and 2 target points
+	ref_pts = [reference, [reference[0] + 1, reference[1], reference[2]]]
+	tgt_pts = [target, [target[0] + 1, target[1], target[2]]]
+
+	count = 0
+	for obj_id in objects:
+		result = obj.orient_object(obj_id, ref_pts, tgt_pts)
+		if result and result.get("status") == "success":
+			count += 1
+
+	return {"status": "success", "result": {"count": count}}
+
+
+# ============================================================================
+# ANNOTATION OPERATIONS (Phase 4)
+# ============================================================================
+
+def add_text(params):
+	"""Add text"""
+	text = params.get("text", "")
+	point = params.get("point", [0, 0, 0])
+	height = params.get("height", 1.0)
+	font = params.get("font", None)
+	result = annotation.add_text(text, point, height, font)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def add_text_dot(params):
+	"""Add text dot"""
+	text = params.get("text", "")
+	point = params.get("point", [0, 0, 0])
+	result = annotation.add_text_dot(text, point)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def add_leader(params):
+	"""Add leader"""
+	points = params.get("points", [])
+	text = params.get("text", "")
+	points_tuple = [tuple(pt) for pt in points]
+	result = annotation.add_leader(points_tuple, text)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+# ============================================================================
+# USER DATA OPERATIONS (Phase 5)
+# ============================================================================
+
+def set_user_text(params):
+	"""Set user text on object"""
+	object_id = params.get("object_id")
+	key = params.get("key")
+	value = params.get("value")
+	result = userdata.set_user_text(object_id, key, value)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def get_user_text(params):
+	"""Get user text from object"""
+	object_id = params.get("object_id")
+	key = params.get("key", None)
+	result = userdata.get_user_text(object_id, key)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def set_document_user_text(params):
+	"""Set document user text"""
+	key = params.get("key")
+	value = params.get("value")
+	result = userdata.set_document_user_text(key, value)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
+
+
+def get_document_user_text(params):
+	"""Get document user text"""
+	key = params.get("key", None)
+	result = userdata.get_document_user_text(key)
+	if result["status"] == "success":
+		return {"status": "success", "result": result}
+	return result
 
 
 # ============================================================================

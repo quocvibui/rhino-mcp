@@ -26,7 +26,7 @@ RhinoMCP Listener
 ============================================================
 Starting background listener thread...
 Listener started successfully
-50 commands ready
+135 commands ready
 ============================================================
 ```
 
@@ -43,21 +43,35 @@ cd /path/to/rhino-mcp
 python3 test.py
 ```
 
-This runs 51 tests across 11 categories:
+This runs 185 tests across 22 categories:
 
 | Category | Tests | What's Tested |
 |----------|-------|---------------|
 | Scene Understanding | 2 | get_scene_info, get_selected_objects |
 | Basic Geometry | 7 | point, line, circle, arc, ellipse, polyline, curve |
 | 3D Solids | 5 | box, sphere, cylinder, cone, torus |
-| Transformations | 6 | move, rotate, scale, mirror, copy, array |
+| Transformations | 8 | move, rotate, scale, mirror, copy, array_linear, array_polar, orient |
 | Boolean Operations | 3 | union, difference, intersection |
-| Curve Operations | 5 | join, explode, offset, fillet, extend |
-| Surface Operations | 3 | extrude, revolve, loft |
+| Curve Creation | 4 | rectangle, spiral, NURBS curve, blend curve |
+| Curve Operations | 9 | join, explode, offset, fillet, extend, divide, divide_length, split, close |
+| Curve Modification | 3 | reverse, rebuild, project to surface |
+| Curve Analysis | 4 | closest point, evaluate, start/end points, curve-curve intersection |
+| Surface Creation | 10 | pipe, sweep1, sweep2, planar, edge, network, patch, extrude along curve, extrude to point, cap holes |
+| Surface Operations | 8 | extrude, revolve, loft, offset, split, fillet, join, explode |
+| Surface Queries | 3 | duplicate edges, duplicate border, unroll |
+| Mesh Operations | 9 | create, planar, from surface, boolean union/diff/intersect, join, to NURB, offset |
+| Group Operations | 6 | create, delete, add to, remove from, list, select by |
+| View Operations | 7 | set camera, zoom extents, zoom selected, get info, display mode, named views |
+| Block Operations | 5 | create, insert, explode, delete, list |
+| Material Operations | 5 | add to object, add to layer, color, transparency, shine |
+| Annotation Operations | 3 | text, text dot, leader |
+| User Data Operations | 4 | set/get user text, set/get document user text |
 | Layer Management | 6 | create, delete, current, color, visibility, list |
+| Object Properties | 8 | name, color, layer, hide, show, lock, unlock, is_solid |
+| Selection & Management | 8 | select all, by type, by layer, by name, last created, invert, unselect, delete |
+| Document Operations | 3 | get info, set units, enable redraw |
 | Analysis Tools | 4 | distance, curve length, area, volume |
-| Object Properties | 3 | name, color, layer |
-| Selection & Management | 5 | select all, by type, by layer, unselect, delete |
+| Code Execution | 1 | execute_python_code |
 | Error Handling | 1 | unknown command returns error |
 
 **Expected result:**
@@ -66,8 +80,8 @@ This runs 51 tests across 11 categories:
 TEST RESULTS SUMMARY
 ======================================================================
 
-Total Tests:  51
-Passed:       51 (100.0%)
+Total Tests:  185
+Passed:       185 (100.0%)
 Failed:       0 (0.0%)
 
 SUCCESS: All tests passed!
@@ -206,7 +220,7 @@ import socket
 import json
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.settimeout(5)
+sock.settimeout(10)
 sock.connect(("localhost", 54321))
 
 command = json.dumps({
@@ -215,10 +229,23 @@ command = json.dumps({
 })
 
 sock.sendall(command.encode("utf-8"))
-response = sock.recv(8192)
-sock.close()
 
-print(json.loads(response.decode("utf-8")))
+# Chunked reading for large responses
+chunks = []
+while True:
+	chunk = sock.recv(8192)
+	if not chunk:
+		break
+	chunks.append(chunk)
+	try:
+		data = b"".join(chunks)
+		response = json.loads(data.decode("utf-8"))
+		break
+	except (json.JSONDecodeError, UnicodeDecodeError):
+		continue
+
+sock.close()
+print(response)
 ```
 
 **Expected**: JSON response with `"status": "success"` and scene data.
@@ -249,8 +276,9 @@ Kill the process using that port, or restart Rhino.
 ### Commands time out
 
 - Rhino may be busy with a long operation
-- The default socket timeout is 10 seconds
+- The default socket timeout is 30 seconds
 - Complex boolean or loft operations can take time
+- Large responses (scene info, mesh data) use chunked reading
 - Add delays between rapid-fire commands
 
 ## Success Criteria
@@ -258,12 +286,18 @@ Kill the process using that port, or restart Rhino.
 All of the following should work:
 
 - [ ] Listener starts in Rhino 8 without errors
-- [ ] `python3 test.py` passes all 51 tests
-- [ ] Claude Desktop shows Rhino tools
+- [ ] `python3 test.py` passes all 185 tests
+- [ ] Claude Desktop shows Rhino tools (135 tools)
 - [ ] `get_scene_info` returns scene data via Claude
 - [ ] Geometry creation works (box, sphere, circle)
-- [ ] Transformations work (move, rotate, scale)
-- [ ] Boolean operations work (union, difference)
-- [ ] Layer management works (create, list)
+- [ ] Surface operations work (pipe, sweep, loft, extrude)
+- [ ] Curve operations work (NURBS, fillet, divide, project)
+- [ ] Mesh operations work (create, boolean, join)
+- [ ] Transformations work (move, rotate, scale, array, orient)
+- [ ] Boolean operations work (union, difference, intersection)
+- [ ] Layer management works (create, list, visibility)
+- [ ] Group/block/material management works
+- [ ] View operations work (camera, zoom, display mode)
+- [ ] Annotations work (text, text dot, leader)
 - [ ] Code execution works (parametric scripts)
 - [ ] Analysis tools work (distance, area, volume)

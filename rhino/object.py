@@ -99,3 +99,54 @@ def select_objects(obj_ids):
 	"""Select objects"""
 	rs.SelectObjects(obj_ids)
 	return {"status": "success", "count": len(obj_ids)}
+
+
+def hide_objects(obj_ids):
+	"""Hide objects"""
+	count = rs.HideObjects(obj_ids)
+	if count:
+		rs.Redraw()
+		return {"status": "success", "count": count}
+	return {"status": "error", "message": "Failed to hide objects"}
+
+
+def show_objects(obj_ids):
+	"""Show hidden objects"""
+	count = rs.ShowObjects(obj_ids)
+	if count:
+		rs.Redraw()
+		return {"status": "success", "count": count}
+	return {"status": "error", "message": "Failed to show objects"}
+
+
+def lock_objects(obj_ids):
+	"""Lock objects"""
+	count = rs.LockObjects(obj_ids)
+	if count:
+		rs.Redraw()
+		return {"status": "success", "count": count}
+	return {"status": "error", "message": "Failed to lock objects"}
+
+
+def unlock_objects(obj_ids):
+	"""Unlock objects"""
+	count = rs.UnlockObjects(obj_ids)
+	if count:
+		rs.Redraw()
+		return {"status": "success", "count": count}
+	return {"status": "error", "message": "Failed to unlock objects"}
+
+
+def is_object_solid(obj_id):
+	"""Check if an object is a solid (closed polysurface or mesh)"""
+	result = rs.IsObjectSolid(obj_id)
+	return {"status": "success", "solid": bool(result)}
+
+
+def orient_object(obj_id, reference, target):
+	"""Orient an object from reference to target planes"""
+	result = rs.OrientObject(obj_id, reference, target)
+	if result:
+		rs.Redraw()
+		return {"status": "success", "id": str(result)}
+	return {"status": "error", "message": "Failed to orient object"}

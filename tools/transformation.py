@@ -118,3 +118,45 @@ def register_tools(mcp):
 			return f"Created linear array with {created} new objects"
 		except Exception as e:
 			return f"Error: {e}"
+
+	@mcp.tool()
+	def array_polar(center_x: float, center_y: float, center_z: float,
+					count: int, angle: float = 360) -> str:
+		"""
+		Create a polar (circular) array of selected objects
+		center_x, center_y, center_z: Center point of the array
+		count: Number of copies (including original)
+		angle: Total angle to fill in degrees (default 360 = full circle)
+		Objects must be selected in Rhino first
+		"""
+		try:
+			params = {
+				"center": [center_x, center_y, center_z],
+				"count": count,
+				"angle": angle
+			}
+			result = send_to_rhino("array_polar", params)
+			created = result.get("created", 0)
+			return f"Created polar array with {created} new objects"
+		except Exception as e:
+			return f"Error: {e}"
+
+	@mcp.tool()
+	def orient_objects(from_x: float, from_y: float, from_z: float,
+					   to_x: float, to_y: float, to_z: float) -> str:
+		"""
+		Orient selected objects from one reference point to a target point
+		from_x, from_y, from_z: Reference point (from)
+		to_x, to_y, to_z: Target point (to)
+		Objects must be selected in Rhino first
+		"""
+		try:
+			params = {
+				"reference": [from_x, from_y, from_z],
+				"target": [to_x, to_y, to_z]
+			}
+			result = send_to_rhino("orient_objects", params)
+			count = result.get("count", 0)
+			return f"Oriented {count} objects"
+		except Exception as e:
+			return f"Error: {e}"

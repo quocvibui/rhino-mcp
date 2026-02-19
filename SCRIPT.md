@@ -37,13 +37,27 @@ def send_command(command_type, params=None):
 
 	try:
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		sock.settimeout(5)
+		sock.settimeout(10)
 		sock.connect((RHINO_HOST, RHINO_PORT))
 		sock.sendall(json.dumps(command).encode("utf-8"))
-		response_data = sock.recv(8192)
+
+		# Chunked reading for large responses
+		chunks = []
+		while True:
+			chunk = sock.recv(8192)
+			if not chunk:
+				break
+			chunks.append(chunk)
+			try:
+				data = b"".join(chunks)
+				response = json.loads(data.decode("utf-8"))
+				sock.close()
+				return response
+			except (json.JSONDecodeError, UnicodeDecodeError):
+				continue
+
 		sock.close()
-		response = json.loads(response_data.decode("utf-8"))
-		return response
+		return {"status": "error", "message": "No response received"}
 	except Exception as e:
 		return {"status": "error", "message": str(e)}
 

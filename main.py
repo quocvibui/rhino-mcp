@@ -1,22 +1,29 @@
 #!/usr/bin/env python3
 """
 Rhino MCP Server using FastMCP
-Exposes 50 tools for controlling Rhino 8 via Model Context Protocol
+Exposes ~135 tools for controlling Rhino 8 via Model Context Protocol
 """
 
 from mcp.server.fastmcp import FastMCP
 import logging
 
 from tools import (
+	annotation,
+	block,
 	curve,
 	document,
 	geometry,
+	group,
 	layer,
+	material,
+	mesh,
 	object,
 	selection,
 	surface,
 	transformation,
-	utility
+	userdata,
+	utility,
+	view,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -38,6 +45,13 @@ def main():
 	object.register_tools(mcp)
 	utility.register_tools(mcp)
 	selection.register_tools(mcp)
+	mesh.register_tools(mcp)
+	group.register_tools(mcp)
+	view.register_tools(mcp)
+	block.register_tools(mcp)
+	material.register_tools(mcp)
+	annotation.register_tools(mcp)
+	userdata.register_tools(mcp)
 
 	logger.info("All tools registered successfully")
 	logger.info("Starting MCP server...")

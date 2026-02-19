@@ -7,15 +7,14 @@ import json
 
 RHINO_HOST = "localhost"
 RHINO_PORT = 54321
-SOCKET_TIMEOUT = 10
+SOCKET_TIMEOUT = 30
+RECV_CHUNK_SIZE = 8192
 
 
 def send_to_rhino(command_type, params=None):
 	"""
-	Send JSON command to Rhino and return response
-	command_type: Command type string
-	params: Parameters dictionary
-	return: Response dictionary from Rhino
+	Send JSON command to Rhino and return response.
+	Uses chunked reading to handle large responses.
 	"""
 	if params is None:
 		params = {}
@@ -32,9 +31,27 @@ def send_to_rhino(command_type, params=None):
 
 		sock.sendall(json.dumps(command).encode("utf-8"))
 
-		response_data = sock.recv(8192)
+		# Chunked reading for large responses
+		chunks = []
+		while True:
+			chunk = sock.recv(RECV_CHUNK_SIZE)
+			if not chunk:
+				break
+			chunks.append(chunk)
+			# Try to parse - if valid JSON, we have the full response
+			try:
+				response_data = b"".join(chunks)
+				response = json.loads(response_data.decode("utf-8"))
+				break
+			except (json.JSONDecodeError, UnicodeDecodeError):
+				continue
+
 		sock.close()
 
+		if not chunks:
+			raise Exception("Empty response from Rhino")
+
+		response_data = b"".join(chunks)
 		response = json.loads(response_data.decode("utf-8"))
 
 		if response.get("status") == "error":
