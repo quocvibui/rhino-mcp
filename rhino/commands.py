@@ -1370,6 +1370,16 @@ def restore_named_view(params):
 	return result
 
 
+def capture_viewport(params):
+	"""Capture viewport to base64 PNG image"""
+	width = params.get("width", 800)
+	height = params.get("height", 600)
+	result = view.capture_viewport(width, height)
+	if result["status"] == "success":
+		return {"status": "success", "result": {"image": result["image"]}}
+	return result
+
+
 # ============================================================================
 # BLOCK OPERATIONS (Phase 3)
 # ============================================================================

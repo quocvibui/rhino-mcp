@@ -2,7 +2,12 @@
 RhinoScriptSyntax view functions
 """
 
+import os
+import tempfile
+import base64
 import rhinoscriptsyntax as rs
+import Rhino
+import System.Drawing
 
 
 def set_view_camera(camera, target, view=None):
@@ -72,3 +77,20 @@ def restore_named_view(name, view=None):
 		rs.Redraw()
 		return {"status": "success", "name": name}
 	return {"status": "error", "message": "Failed to restore named view"}
+
+
+def capture_viewport(width=800, height=600):
+	"""Capture viewport to base64 PNG image"""
+	view = Rhino.RhinoDoc.ActiveDoc.Views.ActiveView
+	if not view:
+		return {"status": "error", "message": "No active view found"}
+	filepath = os.path.join(tempfile.gettempdir(), "rhino_mcp_capture.png")
+	size = System.Drawing.Size(width, height)
+	bitmap = view.CaptureToBitmap(size)
+	if not bitmap:
+		return {"status": "error", "message": "Failed to capture viewport"}
+	bitmap.Save(filepath)
+	bitmap.Dispose()
+	with open(filepath, "rb") as f:
+		b64 = base64.b64encode(f.read()).decode("utf-8")
+	return {"status": "success", "image": b64}

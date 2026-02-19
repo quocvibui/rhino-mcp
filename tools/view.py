@@ -3,6 +3,8 @@ MCP tools for view operations
 """
 
 import json
+import base64
+from mcp.server.fastmcp import Image
 from .utils import send_to_rhino
 
 
@@ -96,3 +98,15 @@ def register_tools(mcp):
 			return f"Restored named view '{name}'"
 		except Exception as e:
 			return f"Error: {e}"
+
+	@mcp.tool()
+	def capture_viewport(width: int = 800, height: int = 600) -> Image:
+		"""
+		Capture a screenshot of the active Rhino viewport and return it as an image.
+		Useful for visual feedback, design review, and see-and-iterate workflows.
+		width: Image width in pixels (default 800)
+		height: Image height in pixels (default 600)
+		"""
+		result = send_to_rhino("capture_viewport", {"width": width, "height": height})
+		image_b64 = result.get("image")
+		return Image(data=base64.b64decode(image_b64), format="png")

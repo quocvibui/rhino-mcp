@@ -132,6 +132,7 @@ def execute_command(command_dict):
 			"set_display_mode": commands.set_display_mode,
 			"add_named_view": commands.add_named_view,
 			"restore_named_view": commands.restore_named_view,
+			"capture_viewport": commands.capture_viewport,
 			# Block operations
 			"create_block": commands.create_block,
 			"insert_block": commands.insert_block,
@@ -247,7 +248,7 @@ def handle_client(client_socket):
 					response = result_holder[0]
 
 				response_json = json.dumps(response)
-				client_socket.send(response_json.encode("utf-8"))
+				client_socket.sendall(response_json.encode("utf-8"))
 				break
 
 			except ValueError:
@@ -279,7 +280,7 @@ def socket_server():
 		print("RhinoMCP Listener")
 		print("=" * 60)
 		print("Active on " + SERVER_HOST + ":" + str(SERVER_PORT))
-		print("135 commands available")
+		print("135+ commands available")
 		print("JSON protocol")
 		print("Ready to receive commands")
 		print("=" * 60)
@@ -318,5 +319,5 @@ listener_thread.daemon = True
 listener_thread.start()
 
 print("Listener started successfully")
-print("135 commands ready")
+print("135+ commands ready")
 print("=" * 60)

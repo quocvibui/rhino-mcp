@@ -7,6 +7,7 @@ Tests all 135 commands with pass/fail tracking
 import socket
 import json
 import time
+import base64
 
 RHINO_HOST = "localhost"
 RHINO_PORT = 54321
@@ -115,7 +116,7 @@ def cleanup():
 def run_tests():
 	"""Run all tests"""
 	print("=" * 70)
-	print("RHINO MCP COMPREHENSIVE TEST SUITE - 135 COMMANDS")
+	print("RHINO MCP COMPREHENSIVE TEST SUITE - 136 COMMANDS")
 	print("=" * 70)
 	print()
 
@@ -717,9 +718,9 @@ def run_tests():
 	test_command("delete_group", "delete_group", {"name": "TestGroup1"})
 
 	# ================================================================
-	# VIEW OPERATIONS (7 tests)
+	# VIEW OPERATIONS (8 tests)
 	# ================================================================
-	header("VIEW OPERATIONS", 7)
+	header("VIEW OPERATIONS", 8)
 
 	test_command("get_view_info", "get_view_info")
 	test_command("set_view_camera", "set_view_camera", {"camera": [50, 50, 50], "target": [0, 0, 0]})
@@ -735,6 +736,34 @@ def run_tests():
 	time.sleep(TEST_DELAY)
 	test_command("zoom_selected", "zoom_selected")
 	send_command("unselect_all")
+
+	# Capture viewport - verify image data is returned
+	time.sleep(TEST_DELAY)
+	send_command("zoom_extents")
+	time.sleep(TEST_DELAY)
+	cap_response = send_command("capture_viewport", {"width": 400, "height": 300})
+	if cap_response.get("status") == "success":
+		image_data = cap_response.get("image") or cap_response.get("result", {}).get("image")
+		if image_data and len(image_data) > 100:
+			try:
+				decoded = base64.b64decode(image_data)
+				# PNG files start with \x89PNG
+				if decoded[:4] == b'\x89PNG':
+					test_results["passed"].append("capture_viewport")
+					print(f"  PASS: capture_viewport (PNG {len(decoded)} bytes)")
+				else:
+					test_results["failed"].append({"name": "capture_viewport", "error": "Not a valid PNG"})
+					print(f"  FAIL: capture_viewport - Not a valid PNG")
+			except Exception as e:
+				test_results["failed"].append({"name": "capture_viewport", "error": f"Invalid base64: {e}"})
+				print(f"  FAIL: capture_viewport - Invalid base64: {e}")
+		else:
+			test_results["failed"].append({"name": "capture_viewport", "error": "No image data or too small"})
+			print(f"  FAIL: capture_viewport - No image data or too small")
+	else:
+		error_msg = cap_response.get("message", "Unknown error")
+		test_results["failed"].append({"name": "capture_viewport", "error": error_msg})
+		print(f"  FAIL: capture_viewport - {error_msg}")
 
 	# ================================================================
 	# BLOCK OPERATIONS (5 tests)
