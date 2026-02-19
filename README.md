@@ -4,7 +4,7 @@ AI-powered 3D modeling in Rhino 8 through Model Context Protocol.
 
 ## Overview
 
-MCP server with 135 tools for code execution, geometry creation, surface/curve/mesh operations, transformations, booleans, layer/material/group/block management, views, annotations, and analysis in Rhino 8.
+MCP server with 135+ tools for code execution, geometry creation, surface/curve/mesh operations, transformations, booleans, layer/material/group/block management, views, annotations, and analysis in Rhino 8.
 
 **Key Features:**
 - 135 comprehensive 3D modeling tools
@@ -35,7 +35,7 @@ RhinoMCP Listener
 ============================================================
 Starting background listener thread...
 Listener started successfully
-135 commands ready
+135+ commands ready
 ============================================================
 ```
 
@@ -67,6 +67,7 @@ If you have problems with debugging, search up: "https://developer.rhino3d.com/a
 
 ## Documentation
 
+- **[SYSTEM_PROMPT](SYSTEM_PROMPT)** - Recommended system prompt for Claude (modeling workflow, best practices)
 - **[MCP.md](MCP.md)** - Using with Claude Desktop
 - **[SCRIPT.md](SCRIPT.md)** - Direct scripting without Claude
 - **[TESTING.md](TESTING.md)** - Testing guide
@@ -82,7 +83,7 @@ If you have problems with debugging, search up: "https://developer.rhino3d.com/a
          │ MCP Protocol
          ▼
 ┌─────────────────┐
-│    main.py      │ FastMCP server with 135 tools
+│    main.py      │ FastMCP server with 135+ tools
 │    tools/       │ Modular tool definitions
 └────────┬────────┘
          │ JSON over TCP (localhost:54321)
@@ -98,7 +99,7 @@ If you have problems with debugging, search up: "https://developer.rhino3d.com/a
 
 **Three Layers:**
 
-1. **MCP Layer** (`main.py`, `tools/`) - Python 3.10+, exposes 135 tools to Claude
+1. **MCP Layer** (`main.py`, `tools/`) - Python 3.10+, exposes 135+ tools to Claude
 2. **Socket Server** (`server.py`) - CPython 3, runs inside Rhino 8
 3. **Rhino Modules** (`rhino/`) - Organized by API category
 
@@ -108,7 +109,7 @@ If you have problems with debugging, search up: "https://developer.rhino3d.com/a
 rhino-mcp/
 ├── main.py                    # MCP server entry point
 ├── server.py                  # Rhino socket server
-├── test.py                    # Test suite (185 tests)
+├── test.py                    # Test suite (185+ tests)
 ├── tools/                     # MCP tool definitions (16 modules)
 │   ├── utils.py               # Shared socket communication
 │   ├── geometry.py            # Geometry creation tools
@@ -128,7 +129,7 @@ rhino-mcp/
 │   ├── userdata.py            # User data tools
 │   └── utility.py             # Measurement + code execution
 ├── rhino/                     # RhinoScriptSyntax wrappers (16 modules)
-│   ├── commands.py            # High-level command routing (135 commands)
+│   ├── commands.py            # High-level command routing (135+ commands)
 │   ├── curve.py               # Curve functions
 │   ├── surface.py             # Surface functions
 │   ├── mesh.py                # Mesh functions
@@ -200,7 +201,7 @@ Run comprehensive test suite:
 python3 test.py
 ```
 
-Tests all 135 commands plus error handling (185 tests total). See [TESTING.md](TESTING.md) for details.
+Tests all 135+ commands plus error handling (185+ tests total). See [TESTING.md](TESTING.md) for details.
 
 ## Troubleshooting
 
@@ -233,7 +234,7 @@ Tests all 135 commands plus error handling (185 tests total). See [TESTING.md](T
 - Rhino 8 for macOS
 - Python 3.10+
 
-All 185 tests pass. Community contributions for other platforms welcome.
+All 185+ tests pass. Community contributions for other platforms welcome.
 
 **Note:** All commands are dispatched to Rhino's UI thread to prevent macOS threading crashes.
 
